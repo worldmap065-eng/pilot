@@ -30,7 +30,7 @@ app.post('/send-pilot', async (req, res) => {
         const completion = await groq.chat.completions.create({
             model: "llama-3.3-70b-versatile",
             messages: [
-{ role: "system", content: "אתה עוזר אישי חכם ומקצועי של העסק. ענה תמיד באדיבות ובעברית. הנה המידע: שעות פעילות א-ה 09:00-18:00, יום ו 08:30-12:30. כתובת: הרצל 10, תל אביב. יש 10% הנחה לקבוצות מעל 3 או נרשמים מראש. אם שואלים משהו שאתה לא יודע, תציע לדבר עם נציג בטלפון 050-1234567." },
+{ role: "system", content: "אתה עוזר חכם לאתר" },
             ...history,
             { role: "user", content: userMessage }
         ],
