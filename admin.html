@@ -2,241 +2,347 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot Studio | Professional Creator</title>
+    <title>Pilot Studio | Design Engine</title>
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root { 
             --apple-blue: #0071e3; 
-            --bg: #000; 
-            --panel: rgba(28, 28, 30, 0.8); 
-            --border: rgba(255, 255, 255, 0.1);
-            --glass: blur(25px);
+            --bg: #1e1e1e; 
+            --panel: #252526; 
+            --border: #333;
+            --text-gray: #a1a1a6;
         }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; -webkit-font-smoothing: antialiased; }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif; user-select: none; }
         body { margin: 0; background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Navigation Bar */
-        .top-nav { 
-            height: 65px; background: rgba(0,0,0,0.8); backdrop-filter: var(--glass);
-            border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 25px; gap: 15px; z-index: 100;
+        /* --- Header --- */
+        .top-bar {
+            height: 50px; background: #2d2d2d; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 15px; justify-content: space-between;
         }
-        .tab-bar { display: flex; gap: 10px; flex: 1; align-items: flex-end; height: 100%; }
-        .tab { 
-            padding: 12px 20px; background: #1c1c1e; border-radius: 12px 12px 0 0; 
-            font-size: 13px; color: #86868b; cursor: pointer; border: 1px solid var(--border); border-bottom: none;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 8px;
+        .logo { font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+        .save-btn { 
+            background: var(--apple-blue); color: white; border: none; 
+            padding: 6px 16px; border-radius: 6px; font-size: 12px; cursor: pointer;
         }
-        .tab.active { background: #2c2c2e; color: white; border-color: var(--apple-blue); transform: translateY(2px); }
-        .tab:hover:not(.active) { background: #252527; color: #fff; }
+        .save-btn:hover { background: #0077ed; }
 
-        /* Main Workspace */
-        .workspace { flex: 1; display: flex; overflow: hidden; position: relative; }
+        /* --- Layout --- */
+        .workspace { flex: 1; display: flex; height: calc(100vh - 50px); }
 
-        /* Sidebar UI */
-        .sidebar { 
-            width: 280px; background: var(--panel); backdrop-filter: var(--glass);
-            border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px; z-index: 50;
+        /* --- Left Sidebar (Tools) --- */
+        .left-panel {
+            width: 250px; background: var(--panel); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 15px; gap: 10px;
         }
-        .right-sidebar { border-left: none; border-right: 1px solid var(--border); width: 320px; }
+        .tool-btn {
+            padding: 12px; background: #333; border: 1px solid transparent; border-radius: 8px;
+            cursor: grab; display: flex; align-items: center; gap: 10px; font-size: 13px; transition: 0.2s;
+        }
+        .tool-btn:hover { background: #3a3a3a; border-color: var(--apple-blue); }
+        .tool-icon { font-size: 16px; }
 
-        .section-label { font-size: 11px; font-weight: 700; color: #86868b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        /* --- Center (Canvas) --- */
+        .canvas-container {
+            flex: 1; background: #1e1e1e; overflow: auto; display: flex; 
+            justify-content: center; padding: 50px; position: relative;
+            background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px;
+        }
         
-        .tool-box { 
-            padding: 18px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-            border-radius: 16px; margin-bottom: 12px; cursor: grab; transition: 0.2s; text-align: center;
+        .artboard {
+            width: 1000px; min-height: 1200px; background: white; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); position: relative; 
+            transition: all 0.3s ease;
         }
-        .tool-box:hover { background: rgba(255,255,255,0.08); border-color: var(--apple-blue); transform: scale(1.02); }
+        /* Mobile View Toggle Class */
+        .artboard.mobile { width: 375px; min-height: 812px; border-radius: 40px; border: 10px solid #111; }
 
-        /* Canvas Engine */
-        .canvas-viewport { 
-            flex: 1; background: #111; overflow: auto; display: flex; justify-content: center; padding: 100px; 
-            background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 40px 40px;
+        /* --- Draggable Elements Styles --- */
+        .draggable-item {
+            position: absolute; cursor: move; padding: 5px; 
+            border: 2px solid transparent; /* Hidden border normally */
         }
-        .artboard { 
-            width: 1100px; min-height: 1400px; background: white; border-radius: 4px; position: relative;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        .draggable-item:hover { border: 1px dashed var(--apple-blue); }
+        .draggable-item.selected { 
+            border: 2px solid var(--apple-blue); 
+            z-index: 1000;
         }
-        .artboard.mobile { width: 375px; min-height: 812px; border-radius: 40px; border: 12px solid #2c2c2e; }
 
-        /* Element Interaction */
-        .el { position: absolute; cursor: move; transition: outline 0.1s; }
-        .el:hover { outline: 2px solid rgba(0, 113, 227, 0.5); }
-        .el.selected { outline: 2px solid var(--apple-blue); z-index: 100; }
+        /* --- Right Sidebar (Properties) --- */
+        .right-panel {
+            width: 280px; background: var(--panel); border-right: 1px solid var(--border);
+            padding: 20px; display: flex; flex-direction: column; gap: 20px;
+        }
+        .panel-section { border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .section-title { font-size: 11px; font-weight: 700; color: var(--text-gray); margin-bottom: 10px; text-transform: uppercase; }
         
-        /* Resize Handles */
-        .resizer { 
-            width: 10px; height: 10px; background: white; border: 2px solid var(--apple-blue); 
-            position: absolute; bottom: -5px; left: -5px; cursor: nwse-resize; display: none; 
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .prop-label { font-size: 12px; color: #ccc; }
+        .prop-input { 
+            background: #111; border: 1px solid #444; color: white; 
+            padding: 5px 8px; border-radius: 4px; font-size: 12px; width: 140px;
         }
-        .selected .resizer { display: block; }
+        .prop-input[type="color"] { padding: 0; height: 30px; width: 50px; cursor: pointer; }
+        
+        .delete-btn {
+            width: 100%; background: #ff3b30; color: white; border: none; 
+            padding: 10px; border-radius: 6px; cursor: pointer; margin-top: auto;
+        }
 
-        /* Inspector Controls */
-        .control-item { margin-bottom: 20px; }
-        .control-item label { display: block; font-size: 12px; color: #86868b; margin-bottom: 8px; }
-        .input-dark { 
-            width: 100%; padding: 12px; background: #2c2c2e; border: 1px solid #3d3d3f; 
-            border-radius: 10px; color: white; font-size: 13px; transition: 0.2s;
-        }
-        .input-dark:focus { border-color: var(--apple-blue); background: #3a3a3c; }
-
-        /* Floating Actions */
-        .action-bar { 
-            position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
-            padding: 12px 30px; background: rgba(255,255,255,0.1); backdrop-filter: var(--glass);
-            border-radius: 40px; border: 1px solid var(--border); display: flex; gap: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-        .btn-glass { 
-            background: white; color: black; border: none; padding: 10px 25px; border-radius: 20px; 
-            font-weight: 600; cursor: pointer; transition: 0.3s;
-        }
-        .btn-glass:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--apple-blue); }
     </style>
 </head>
 <body>
 
-<nav class="top-nav">
-    <div style="font-weight: 700; letter-spacing: -1px; font-size: 19px; margin-left: 20px;">PILOT<span style="font-weight: 300; opacity: 0.6;">STUDIO</span></div>
-    <div class="tab-bar" id="tabs">
-        <div class="tab active" onclick="selectTab(this)">Home</div>
-        <div class="tab" onclick="addPage()" style="border: 1px dashed #444; color: var(--apple-blue);">+ New Page</div>
-    </div>
-</nav>
-
-<div class="workspace">
-    <aside class="sidebar">
-        <div class="section-label">מחסן רכיבים</div>
-        <div class="tool-box" draggable="true" ondragstart="eDrag(event, 'h1')">✦ כותרת</div>
-        <div class="tool-box" draggable="true" ondragstart="eDrag(event, 'p')">📝 טקסט חופשי</div>
-        <div class="tool-box" draggable="true" ondragstart="eDrag(event, 'button')">🔘 כפתור לחיץ</div>
-        <div class="tool-box" draggable="true" ondragstart="eDrag(event, 'img')">🖼️ תמונה</div>
-
-        <div class="section-label" style="margin-top: 40px;">תצוגה</div>
-        <button onclick="changeView('desktop')" class="btn-glass" style="width:100%; background: #2c2c2e; color: white; margin-bottom:10px;">Desktop</button>
-        <button onclick="changeView('mobile')" class="btn-glass" style="width:100%; background: #2c2c2e; color: white;">iPhone</button>
-    </aside>
-
-    <main class="canvas-viewport">
-        <div id="artboard" class="artboard">
-            </div>
-    </main>
-
-    <aside class="sidebar right-sidebar">
-        <div class="section-label">הגדרות אלמנט</div>
-        <div id="inspector-ui">
-            <p style="text-align:center; color:#555; margin-top:50px;">בחר פריט לעריכה</p>
+    <header class="top-bar">
+        <div class="logo">PILOT STUDIO <span style="color:#666">PRO</span></div>
+        <div style="display:flex; gap:10px;">
+            <button class="save-btn" onclick="toggleDevice('desktop')" style="background:#444">🖥️ Desktop</button>
+            <button class="save-btn" onclick="toggleDevice('mobile')" style="background:#444">📱 Mobile</button>
+            <button class="save-btn" onclick="alert('נשמר!')">Publish Live</button>
         </div>
-    </aside>
-</div>
+    </header>
 
-<div class="action-bar">
-    <button class="btn-glass" onclick="save()">פרסם אתר חי</button>
-</div>
+    <div class="workspace">
+        
+        <aside class="left-panel">
+            <div class="section-title">רכיבים</div>
+            <div class="tool-btn" draggable="true" ondragstart="startDrag(event, 'h1')">
+                <span class="tool-icon">H1</span> כותרת גדולה
+            </div>
+            <div class="tool-btn" draggable="true" ondragstart="startDrag(event, 'p')">
+                <span class="tool-icon">📝</span> פסקת טקסט
+            </div>
+            <div class="tool-btn" draggable="true" ondragstart="startDrag(event, 'button')">
+                <span class="tool-icon">🔘</span> כפתור מעוצב
+            </div>
+            <div class="tool-btn" draggable="true" ondragstart="startDrag(event, 'img')">
+                <span class="tool-icon">🖼️</span> תמונה
+            </div>
+        </aside>
+
+        <main class="canvas-container">
+            <div id="artboard" class="artboard">
+                </div>
+        </main>
+
+        <aside class="right-panel" id="properties-panel" style="opacity: 0.3; pointer-events: none;">
+            
+            <div class="panel-section">
+                <div class="section-title">תוכן</div>
+                <div class="prop-row">
+                    <span class="prop-label">טקסט</span>
+                    <input type="text" id="p-text" class="prop-input">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-title">עיצוב</div>
+                <div class="prop-row">
+                    <span class="prop-label">רקע (Background)</span>
+                    <input type="color" id="p-bg" class="prop-input">
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">צבע טקסט</span>
+                    <input type="color" id="p-color" class="prop-input">
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">גודל פונט (px)</span>
+                    <input type="number" id="p-size" class="prop-input">
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">עיגול פינות (px)</span>
+                    <input type="number" id="p-radius" class="prop-input">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-title">מידות</div>
+                <div class="prop-row">
+                    <span class="prop-label">רוחב (Width)</span>
+                    <input type="text" id="p-width" class="prop-input" placeholder="auto">
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">גובה (Height)</span>
+                    <input type="text" id="p-height" class="prop-input" placeholder="auto">
+                </div>
+            </div>
+
+            <button class="delete-btn" onclick="deleteSelected()">🗑️ מחק אלמנט</button>
+        </aside>
+
+    </div>
 
 <script>
-    let selected = null;
     const artboard = document.getElementById('artboard');
+    const panel = document.getElementById('properties-panel');
+    let selectedElement = null;
 
-    function eDrag(e, type) { e.dataTransfer.setData('type', type); }
+    // 1. Dragging Logic (Creation)
+    function startDrag(e, type) {
+        e.dataTransfer.setData('type', type);
+    }
 
     artboard.ondragover = (e) => e.preventDefault();
     artboard.ondrop = (e) => {
+        e.preventDefault();
         const type = e.dataTransfer.getData('type');
         const rect = artboard.getBoundingClientRect();
-        createEl(type, e.clientX - rect.left, e.clientY - rect.top);
+        // Calculate position relative to artboard
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        createElement(type, x, y);
     };
 
-    function createEl(type, x, y) {
+    function createElement(type, x, y) {
         const el = document.createElement(type === 'img' ? 'div' : type);
-        el.className = 'el';
+        el.className = 'draggable-item';
         el.style.left = x + 'px';
         el.style.top = y + 'px';
         
-        if(type === 'button') {
-            el.innerText = 'Click Me';
-            el.style.padding = '12px 25px';
+        // Default Professional Styling
+        if(type === 'h1') {
+            el.innerText = 'כותרת ראשית';
+            el.style.fontSize = '32px';
+            el.style.fontWeight = '700';
+            el.style.color = '#1d1d1f';
+        } else if (type === 'p') {
+            el.innerText = 'הקלד את הטקסט שלך כאן...';
+            el.style.fontSize = '16px';
+            el.style.color = '#424245';
+            el.style.width = '300px';
+        } else if (type === 'button') {
+            el.innerText = 'לחץ כאן';
             el.style.background = '#0071e3';
             el.style.color = 'white';
-            el.style.borderRadius = '22px';
+            el.style.padding = '12px 24px';
             el.style.border = 'none';
-        } else if(type === 'img') {
-            el.style.width = '200px'; el.style.height = '150px';
-            el.style.background = '#eee url("https://via.placeholder.com/200x150") center/cover';
+            el.style.borderRadius = '20px';
+            el.style.fontSize = '14px';
+            el.style.textAlign = 'center';
+        } else if (type === 'img') {
+            el.style.width = '200px';
+            el.style.height = '150px';
+            el.style.background = '#eee';
             el.style.borderRadius = '10px';
-        } else {
-            el.innerText = 'טקסט חדש...';
-            el.style.fontSize = type === 'h1' ? '42px' : '16px';
-            el.style.fontWeight = type === 'h1' ? '700' : '400';
+            el.innerText = 'תמונה';
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
+            el.style.color = '#999';
         }
 
-        // Add Resize Handle
-        const resizer = document.createElement('div');
-        resizer.className = 'resizer';
-        el.appendChild(resizer);
-
-        setupElement(el);
+        makeInteractive(el);
         artboard.appendChild(el);
-        select(el);
+        selectElementFunc(el);
     }
 
-    function setupElement(el) {
+    // 2. Interaction Logic (Move & Select)
+    function makeInteractive(el) {
         el.onmousedown = function(e) {
-            if (e.target.className === 'resizer') {
-                startResize(e, el);
-                return;
-            }
-            select(el);
-            let shiftX = e.clientX - el.offsetLeft;
-            let shiftY = e.clientY - el.offsetTop;
+            if(el.isContentEditable) return; // Don't drag if editing text
             
-            document.onmousemove = (me) => {
-                el.style.left = (me.clientX - shiftX) + 'px';
-                el.style.top = (me.clientY - shiftY) + 'px';
+            selectElementFunc(el);
+            
+            let shiftX = e.clientX - el.getBoundingClientRect().left;
+            let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                el.style.left = (pageX - artboard.getBoundingClientRect().left - shiftX) + 'px';
+                el.style.top = (pageY - artboard.getBoundingClientRect().top - shiftY) + 'px';
+            }
+
+            function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            document.onmouseup = function() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.onmouseup = null;
             };
-            document.onmouseup = () => document.onmousemove = null;
         };
-        el.ondblclick = () => { el.contentEditable = true; el.focus(); };
+
+        // Double click to edit text
+        el.ondblclick = () => {
+            if(el.tagName !== 'IMG') {
+                el.contentEditable = true;
+                el.focus();
+                el.style.cursor = 'text';
+                el.onblur = () => {
+                    el.contentEditable = false;
+                    el.style.cursor = 'move';
+                    // Update input if text changed manually
+                    if(selectedElement === el) document.getElementById('p-text').value = el.innerText;
+                };
+            }
+        };
     }
 
-    function startResize(e, el) {
-        e.stopPropagation();
-        let startW = el.offsetWidth;
-        let startX = e.clientX;
+    // 3. Selection & Properties Logic (The Fix)
+    function selectElementFunc(el) {
+        if(selectedElement) selectedElement.classList.remove('selected');
+        selectedElement = el;
+        selectedElement.classList.add('selected');
+
+        // Enable Panel
+        panel.style.opacity = '1';
+        panel.style.pointerEvents = 'all';
+
+        // Load values into inputs
+        document.getElementById('p-text').value = el.innerText;
         
-        document.onmousemove = (me) => {
-            el.style.width = (startW + (me.clientX - startX)) + 'px';
-        };
-        document.onmouseup = () => document.onmousemove = null;
+        // Convert rgb to hex for color input is complex, simple implementation:
+        // We will just read what we can. For simple workflow let's assume standard colors.
+        // Or just let user overwrite.
+        
+        document.getElementById('p-size').value = parseInt(window.getComputedStyle(el).fontSize);
+        document.getElementById('p-radius').value = parseInt(window.getComputedStyle(el).borderRadius) || 0;
+        document.getElementById('p-width').value = el.style.width;
+        document.getElementById('p-height').value = el.style.height;
     }
 
-    function select(el) {
-        if(selected) selected.classList.remove('selected');
-        selected = el;
-        selected.classList.add('selected');
-        updateUI();
+    // 4. Real-time Listeners (Attaching inputs to selected element)
+    document.getElementById('p-text').addEventListener('input', (e) => {
+        if(selectedElement) selectedElement.innerText = e.target.value;
+    });
+
+    document.getElementById('p-bg').addEventListener('input', (e) => {
+        if(selectedElement) selectedElement.style.background = e.target.value;
+    });
+
+    document.getElementById('p-color').addEventListener('input', (e) => {
+        if(selectedElement) selectedElement.style.color = e.target.value;
+    });
+
+    document.getElementById('p-size').addEventListener('input', (e) => {
+        if(selectedElement) selectedElement.style.fontSize = e.target.value + 'px';
+    });
+
+    document.getElementById('p-radius').addEventListener('input', (e) => {
+        if(selectedElement) selectedElement.style.borderRadius = e.target.value + 'px';
+    });
+    
+    document.getElementById('p-width').addEventListener('input', (e) => {
+        if(selectedElement) selectedElement.style.width = e.target.value; // user needs to type px or %
+    });
+    
+    document.getElementById('p-height').addEventListener('input', (e) => {
+        if(selectedElement) selectedElement.style.height = e.target.value;
+    });
+
+    function deleteSelected() {
+        if(selectedElement) {
+            selectedElement.remove();
+            selectedElement = null;
+            panel.style.opacity = '0.3';
+            panel.style.pointerEvents = 'none';
+        }
     }
 
-    function updateUI() {
-        const ui = document.getElementById('inspector-ui');
-        ui.innerHTML = `
-            <div class="control-item">
-                <label>תוכן / טקסט</label>
-                <input type="text" class="input-dark" value="${selected.innerText}" oninput="selected.innerText = this.value">
-            </div>
-            <div class="control-item">
-                <label>צבע (HEX / Name)</label>
-                <input type="text" class="input-dark" value="${selected.style.color || '#000'}" oninput="selected.style.color = this.value">
-            </div>
-            <div class="control-item">
-                <label>רוחב (px)</label>
-                <input type="number" class="input-dark" value="${selected.offsetWidth}" oninput="selected.style.width = this.value + 'px'">
-            </div>
-            <button class="btn-glass" onclick="selected.remove();" style="width:100%; background:#ff3b30; color:white;">מחק אלמנט</button>
-        `;
+    function toggleDevice(mode) {
+        if(mode === 'mobile') artboard.classList.add('mobile');
+        else artboard.classList.remove('mobile');
     }
-
-    function changeView(mode) { artboard.className = 'artboard ' + (mode === 'mobile' ? 'mobile' : ''); }
-    function save() { alert("🚀 האתר פורסם בהצלחה!"); }
 </script>
 
 </body>
