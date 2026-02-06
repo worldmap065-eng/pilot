@@ -2,216 +2,233 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot Studio Pro | Canvas Editor</title>
+    <title>Pilot Studio Pro | Engine v2.0</title>
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --apple-blue: #0071e3; --bg: #000; --sidebar: #161617; --panel: #1c1c1e; --border: rgba(255,255,255,0.1); }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; cursor: default; }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
         body { margin: 0; background: var(--bg); color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
         /* Top Navigation - Tabs */
         .top-nav { 
             height: 60px; background: #000; border-bottom: 1px solid var(--border); 
-            display: flex; align-items: flex-end; padding: 0 20px; gap: 8px;
+            display: flex; align-items: flex-end; padding: 0 20px; gap: 8px; z-index: 1000;
         }
         .tab { 
             padding: 10px 25px; background: var(--sidebar); border-radius: 12px 12px 0 0; 
             font-size: 13px; color: #86868b; cursor: pointer; transition: 0.3s; border: 1px solid var(--border); border-bottom: none;
         }
-        .tab.active { background: var(--panel); color: white; border-color: var(--apple-blue); box-shadow: 0 -5px 15px rgba(0,113,227,0.2); }
-        .tab-add { color: var(--apple-blue); font-weight: bold; border: 1px dashed var(--apple-blue); }
+        .tab.active { background: #2c2c2e; color: white; border-color: var(--apple-blue); }
+        .tab-add { color: var(--apple-blue); border: 1px dashed var(--apple-blue); }
 
-        /* Main Workspace */
+        /* Workspace */
         .studio-content { flex: 1; display: flex; overflow: hidden; }
 
-        /* Sidebars */
-        .sidebar { width: 280px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px; }
-        .inspector { width: 300px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 25px; display: none; }
-        .inspector.active { display: block; animation: fadeIn 0.3s ease; }
+        /* Sidebar: Assets & Inspector */
+        .sidebar { width: 280px; background: var(--sidebar); border-left: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; }
+        .right-sidebar { border-left: none; border-right: 1px solid var(--border); width: 300px; }
 
-        .group-label { font-size: 11px; font-weight: 700; color: #86868b; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
-        
-        /* Draggable Elements */
-        .element-card { 
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 15px;
-            border-radius: 14px; margin-bottom: 10px; font-size: 14px; cursor: grab; transition: 0.2s;
-            display: flex; align-items: center; gap: 12px;
+        .asset-item { 
+            padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 12px; margin-bottom: 10px; cursor: grab; font-size: 14px; text-align: center;
         }
-        .element-card:hover { border-color: var(--apple-blue); background: rgba(255,255,255,0.08); }
+        .asset-item:hover { border-color: var(--apple-blue); background: rgba(255,255,255,0.08); }
 
-        /* Canvas Area */
-        .canvas-area { flex: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center; overflow: auto; padding: 60px; }
-        
-        .mockup-container {
-            background: white; border-radius: 20px; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 50px 100px rgba(0,0,0,0.5); overflow: hidden; position: relative;
+        /* Canvas: The Heart of the Editor */
+        .canvas-area { 
+            flex: 1; position: relative; background: #111; overflow: auto; 
+            display: flex; justify-content: center; padding: 100px;
+            background-image: radial-gradient(#222 1px, transparent 1px); background-size: 20px 20px;
         }
-        .desktop-v { width: 95%; height: 90%; }
-        .mobile-v { width: 375px; height: 780px; border: 12px solid #2c2c2e; border-radius: 50px; }
+        
+        .artboard {
+            width: 1000px; min-height: 1200px; background: white; border-radius: 4px;
+            position: relative; box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .artboard.mobile { width: 375px; min-height: 812px; }
 
-        iframe { width: 100%; height: 100%; border: none; }
+        /* Draggable Elements within Artboard */
+        .canvas-element {
+            position: absolute; cursor: move; min-width: 50px; min-height: 20px;
+            outline: 1px solid transparent; transition: outline 0.2s;
+            user-select: none;
+        }
+        .canvas-element:hover { outline: 1px solid var(--apple-blue); }
+        .canvas-element.selected { outline: 2px solid var(--apple-blue) !important; z-index: 100; }
 
-        /* Inspector Inputs */
+        /* Toolbar Controls */
         .ctrl-group { margin-bottom: 20px; }
-        .ctrl-label { font-size: 11px; color: #86868b; display: block; margin-bottom: 8px; }
+        .ctrl-label { font-size: 11px; color: #86868b; display: block; margin-bottom: 8px; text-transform: uppercase; }
         .ctrl-input { 
-            width: 100%; padding: 12px; background: #2c2c2e; border: 1px solid #444; 
-            border-radius: 10px; color: white; font-size: 13px; outline: none;
+            width: 100%; padding: 10px; background: #2c2c2e; border: 1px solid #444; 
+            border-radius: 8px; color: white; font-size: 13px;
         }
-        .ctrl-input:focus { border-color: var(--apple-blue); }
 
-        .btn-action { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        .btn-save { background: white; color: black; position: fixed; bottom: 30px; left: 30px; width: auto; padding: 15px 40px; border-radius: 30px; }
-        .btn-delete { background: #ff3b30; color: white; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        .publish-btn {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            padding: 15px 40px; background: white; color: black; border-radius: 30px;
+            font-weight: 700; border: none; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 2000;
+        }
     </style>
 </head>
 <body>
 
-<div id="login-overlay" style="position:fixed; inset:0; background:#000; z-index:10000; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-    <h1 style="font-size:32px; font-weight:700; margin-bottom:30px;">Pilot Studio <span style="font-weight:300; opacity:0.5;">OS</span></h1>
-    <input type="password" id="pass-field" style="background:#1d1d1f; border:1px solid #333; color:white; padding:20px; width:320px; border-radius:18px; text-align:center; font-size:16px;" placeholder="Password">
-</div>
-
 <nav class="top-nav" id="tab-bar">
-    <div class="tab active" onclick="switchTab('index.html', this)">Home (index.html)</div>
-    <div class="tab" onclick="switchTab('about.html', this)">About</div>
-    <div class="tab tab-add" onclick="addPage()">+ New Page</div>
+    <div class="tab active" onclick="selectTab(this)">Home (index.html)</div>
+    <div class="tab tab-add" onclick="addNewPage()">+ New Page</div>
 </nav>
 
 <div class="studio-content">
     <aside class="sidebar">
-        <div class="group-label">Library</div>
-        <div class="element-card" draggable="true" ondragstart="event.dataTransfer.setData('type', 'h1')">✦ Header</div>
-        <div class="element-card" draggable="true" ondragstart="event.dataTransfer.setData('type', 'p')">📝 Text Block</div>
-        <div class="element-card" draggable="true" ondragstart="event.dataTransfer.setData('type', 'button')">🔘 Action Button</div>
+        <div style="font-size:11px; color:#86868b; margin-bottom:15px;">ASSETS</div>
+        <div class="asset-item" draggable="true" ondragstart="startDrag(event, 'h1')">Title</div>
+        <div class="asset-item" draggable="true" ondragstart="startDrag(event, 'p')">Paragraph</div>
+        <div class="asset-item" draggable="true" ondragstart="startDrag(event, 'button')">Button</div>
         
-        <div class="group-label" style="margin-top:40px;">View Mode</div>
-        <button class="view-btn active" style="margin-bottom:10px;" onclick="setView('desktop', this)">Desktop Preview</button>
-        <button class="view-btn" onclick="setView('mobile', this)">Mobile View (iPhone)</button>
+        <div style="margin-top:auto;">
+            <button onclick="toggleView('desktop')" style="width:100%; padding:10px; margin-bottom:5px;">Desktop</button>
+            <button onclick="toggleView('mobile')" style="width:100%; padding:10px;">iPhone</button>
+        </div>
     </aside>
 
     <main class="canvas-area">
-        <div id="preview-box" class="mockup-container desktop-v">
-            <iframe src="index.html" id="editor-iframe"></iframe>
-        </div>
+        <div id="artboard" class="artboard">
+            </div>
     </main>
 
-    <aside class="inspector" id="inspector">
-        <div class="group-label">Element Settings</div>
-        <div class="ctrl-group">
-            <label class="ctrl-label">Content Text</label>
-            <input type="text" id="prop-text" class="ctrl-input" oninput="syncChange()">
-        </div>
-        <div class="ctrl-group">
-            <label class="ctrl-label">Link URL</label>
-            <input type="text" id="prop-link" class="ctrl-input" placeholder="https://..." oninput="syncChange()">
-        </div>
-        <div class="ctrl-group">
-            <label class="ctrl-label">Background Color</label>
-            <input type="color" id="prop-color" class="ctrl-input" style="height:45px; padding:5px;" oninput="syncChange()">
-        </div>
-        <div class="ctrl-group">
-            <label class="ctrl-label">Font Size (px)</label>
-            <input type="number" id="prop-size" class="ctrl-input" oninput="syncChange()">
+    <aside class="sidebar right-sidebar">
+        <div style="font-size:11px; color:#86868b; margin-bottom:15px;">PROPERTIES</div>
+        <div id="inspector-content">
+            <p style="color:#555; font-size:13px; text-align:center;">Select an element to edit</p>
         </div>
         
-        <button class="btn-action btn-delete" onclick="deleteItem()">Delete Element</button>
+        <div style="margin-top:40px; border-top:1px solid #333; padding-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px;">Visible on Site</span>
+                <input type="checkbox" checked id="page-visibility">
+            </div>
+        </div>
     </aside>
 </div>
 
-<button class="btn-save btn-action" onclick="publish()">Publish Live</button>
+<button class="publish-btn" onclick="saveSite()">Publish Changes</button>
 
 <script>
-    let activeItem = null;
+    let selectedEl = null;
+    const artboard = document.getElementById('artboard');
 
-    // Login Handle
-    document.getElementById('pass-field').addEventListener('keypress', (e) => {
-        if(e.key === 'Enter' && e.target.value === 'admin123') {
-            document.getElementById('login-overlay').style.display = 'none';
-        }
-    });
+    // Drag & Drop Logic
+    function startDrag(e, type) {
+        e.dataTransfer.setData('type', type);
+    }
 
-    // View Switching
-    function setView(mode, btn) {
-        const box = document.getElementById('preview-box');
-        if(mode === 'mobile') {
-            box.className = "mockup-container mobile-v";
+    artboard.ondragover = (e) => e.preventDefault();
+    artboard.ondrop = (e) => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('type');
+        const rect = artboard.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        createElement(type, x, y);
+    };
+
+    function createElement(type, x, y) {
+        const el = document.createElement(type === 'button' ? 'button' : type);
+        el.className = 'canvas-element';
+        el.innerText = 'New ' + type;
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        
+        if(type === 'button') {
+            el.style.background = '#0071e3';
+            el.style.color = 'white';
+            el.style.padding = '12px 24px';
+            el.style.borderRadius = '20px';
+            el.style.border = 'none';
         } else {
-            box.className = "mockup-container desktop-v";
+            el.style.color = '#1d1d1f';
+            el.style.fontSize = type === 'h1' ? '40px' : '16px';
         }
+
+        makeDraggable(el);
+        artboard.appendChild(el);
+        selectElement(el);
     }
 
-    // Tab Handling
-    function switchTab(page, el) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('editor-iframe').src = page;
+    function makeDraggable(el) {
+        el.onmousedown = function(e) {
+            if (el.contentEditable === "true") return;
+            selectElement(el);
+            let shiftX = e.clientX - el.getBoundingClientRect().left;
+            let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                el.style.left = (pageX - artboard.getBoundingClientRect().left - shiftX) + 'px';
+                el.style.top = (pageY - artboard.getBoundingClientRect().top - shiftY) + 'px';
+            }
+
+            function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
+            document.addEventListener('mousemove', onMouseMove);
+
+            document.onmouseup = function() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.onmouseup = null;
+            };
+        };
+
+        el.ondblclick = () => { el.contentEditable = true; el.focus(); };
+        el.onblur = () => { el.contentEditable = false; updateInspector(); };
     }
 
-    function addPage() {
+    function selectElement(el) {
+        if(selectedEl) selectedEl.classList.remove('selected');
+        selectedEl = el;
+        selectedEl.classList.add('selected');
+        updateInspector();
+    }
+
+    function updateInspector() {
+        const panel = document.getElementById('inspector-content');
+        panel.innerHTML = `
+            <div class="ctrl-group">
+                <label class="ctrl-label">Text Content</label>
+                <input type="text" class="ctrl-input" value="${selectedEl.innerText}" oninput="selectedEl.innerText = this.value">
+            </div>
+            <div class="ctrl-group">
+                <label class="ctrl-label">Font Size (px)</label>
+                <input type="number" class="ctrl-input" value="${parseInt(selectedEl.style.fontSize) || 16}" oninput="selectedEl.style.fontSize = this.value + 'px'">
+            </div>
+            <div class="ctrl-group">
+                <label class="ctrl-label">Text Color</label>
+                <input type="color" class="ctrl-input" value="${selectedEl.style.color}" oninput="selectedEl.style.color = this.value">
+            </div>
+            <button onclick="selectedEl.remove(); document.getElementById('inspector-content').innerHTML=''" style="width:100%; padding:10px; background:#ff3b30; border:none; border-radius:8px; color:white; cursor:pointer;">Delete</button>
+        `;
+    }
+
+    function toggleView(mode) {
+        artboard.className = 'artboard ' + (mode === 'mobile' ? 'mobile' : '');
+    }
+
+    function addNewPage() {
         const name = prompt("Page Name:");
         if(name) {
-            const bar = document.getElementById('tab-bar');
-            const newTab = document.createElement('div');
-            newTab.className = "tab";
-            newTab.innerText = name;
-            newTab.onclick = () => switchTab(name + ".html", newTab);
-            bar.insertBefore(newTab, bar.lastElementChild);
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.innerText = name + ".html";
+            tab.onclick = () => selectTab(tab);
+            document.getElementById('tab-bar').insertBefore(tab, document.querySelector('.tab-add'));
         }
     }
 
-    // Editor Logic
-    const iframe = document.getElementById('editor-iframe');
-    iframe.onload = function() {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        
-        // נטרול הבוט בתוך העורך
-        const chat = doc.getElementById('chat-wrapper');
-        if(chat) chat.style.display = 'none';
-
-        doc.querySelectorAll('h1, p, button, span').forEach(el => {
-            el.style.cursor = 'move';
-            el.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                openInspector(el);
-            });
-        });
+    function selectTab(el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
     }
 
-    function openInspector(el) {
-        if(activeItem) activeItem.style.outline = 'none';
-        activeItem = el;
-        activeItem.style.outline = '3px solid #0071e3';
-        activeItem.style.outlineOffset = '4px';
-
-        document.getElementById('inspector').classList.add('active');
-        document.getElementById('prop-text').value = el.innerText;
-        document.getElementById('prop-link').value = el.getAttribute('onclick') || '';
-        document.getElementById('prop-size').value = parseInt(window.getComputedStyle(el).fontSize);
-    }
-
-    function syncChange() {
-        if(!activeItem) return;
-        activeItem.innerText = document.getElementById('prop-text').value;
-        activeItem.style.fontSize = document.getElementById('prop-size').value + 'px';
-        const color = document.getElementById('prop-color').value;
-        if(activeItem.tagName === 'BUTTON') activeItem.style.backgroundColor = color;
-        else activeItem.style.color = color;
-    }
-
-    function deleteItem() {
-        if(activeItem && confirm('למחוק?')) {
-            activeItem.remove();
-            document.getElementById('inspector').classList.remove('active');
-        }
-    }
-
-    function publish() {
-        alert("🚀 האתר עודכן בהצלחה! השינויים חיים כעת.");
-    }
+    function saveSite() { alert("🚀 Published! Your site is live."); }
 </script>
 
 </body>
