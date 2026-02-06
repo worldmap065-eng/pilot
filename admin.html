@@ -2,186 +2,193 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot | Control Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Pilot OS | Next-Gen Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --p-color: #0071e3; --bg: #f5f5f7; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #1d1d1f; overflow: hidden; }
-        
-        /* Login Screen */
-        #login-screen { position: fixed; inset: 0; background: white; z-index: 1000; display: flex; justify-content: center; align-items: center; transition: 0.5s; }
-        .login-box { width: 320px; text-align: center; }
-        .login-box img { width: 60px; margin-bottom: 20px; }
-        .login-box input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #d2d2d7; margin-bottom: 10px; font-size: 16px; text-align: center; }
-        .login-btn { width: 100%; padding: 15px; background: black; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        :root { --apple-blue: #0071e3; --glass: rgba(255, 255, 255, 0.7); --border: rgba(0,0,0,0.1); }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', -apple-system, sans-serif; }
+        body { margin: 0; background: #000; color: white; overflow: hidden; height: 100vh; }
 
-        /* Main Layout */
-        #admin-panel { display: none; height: 100vh; grid-template-columns: 320px 1fr; }
-        
-        /* Sidebar */
-        .sidebar { background: white; border-left: 1px solid #d2d2d7; padding: 30px; display: flex; flex-direction: column; gap: 25px; overflow-y: auto; }
-        .nav-item { padding: 12px; border-radius: 10px; cursor: pointer; color: #86868b; font-weight: 500; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: #f5f5f7; color: black; }
+        /* Login Experience */
+        #login-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            transition: 0.8s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .login-card { width: 400px; text-align: center; animation: fadeIn 1s; }
+        .login-card h1 { font-size: 42px; font-weight: 700; margin-bottom: 10px; background: linear-gradient(180deg, #fff 0%, #888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-input { 
+            width: 100%; padding: 20px; background: #1d1d1f; border: 1px solid #333; 
+            border-radius: 16px; color: white; font-size: 18px; text-align: center;
+            outline: none; transition: 0.3s;
+        }
+        .login-input:focus { border-color: var(--apple-blue); box-shadow: 0 0 20px rgba(0,113,227,0.4); }
 
-        /* Editor Fields */
-        .editor-section { display: none; }
-        .editor-section.active { display: block; }
-        .field { margin-bottom: 20px; }
-        label { font-size: 12px; font-weight: 600; color: #86868b; display: block; margin-bottom: 8px; }
-        input[type="text"], textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #d2d2d7; font-size: 14px; outline: none; }
-        input[type="color"] { width: 100%; height: 40px; border: none; cursor: pointer; }
+        /* Main Workspace */
+        #workspace { display: none; height: 100vh; grid-template-columns: 380px 1fr; background: #f5f5f7; color: #1d1d1f; }
 
-        /* Preview Canvas */
-        .canvas { background: #e8e8ed; padding: 40px; display: flex; justify-content: center; overflow-y: auto; }
-        .site-mockup { 
-            width: 100%; max-width: 900px; background: white; border-radius: 20px; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.12); min-height: 1200px; 
-            padding: 60px; transition: 0.3s; transform-origin: top center;
+        /* Inspector (Sidebar) */
+        .inspector { 
+            background: var(--glass); backdrop-filter: blur(30px); border-left: 1px solid var(--border);
+            padding: 30px; display: flex; flex-direction: column; gap: 25px; z-index: 10;
+        }
+        .section-label { font-size: 11px; font-weight: 700; color: #86868b; text-transform: uppercase; letter-spacing: 1px; }
+        .control-group { background: white; padding: 15px; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        input[type="text"], textarea { width: 100%; border: none; font-size: 15px; outline: none; margin-top: 5px; background: transparent; }
+
+        /* Viewport (The Canvas) */
+        .viewport { 
+            background: #e5e5e7; display: flex; justify-content: center; align-items: center; 
+            padding: 40px; perspective: 1000px; overflow-y: auto;
+        }
+        .device-frame {
+            width: 100%; max-width: 1000px; min-height: 1200px; background: white;
+            border-radius: 30px; box-shadow: 0 50px 100px rgba(0,0,0,0.1);
+            overflow: hidden; transform: rotateX(2deg); transition: 0.5s;
         }
 
-        /* Elements in Preview */
-        .preview-hero-h1 { font-size: 56px; font-weight: 700; margin-bottom: 20px; }
-        .preview-hero-p { font-size: 24px; color: #86868b; line-height: 1.5; }
-        .preview-btn { display: inline-block; padding: 15px 35px; background: var(--p-color); color: white; border-radius: 30px; margin-top: 30px; font-weight: 600; }
+        /* Live Preview Elements */
+        .pv-hero { padding: 100px 60px; text-align: center; }
+        .pv-title { font-size: 72px; font-weight: 700; letter-spacing: -3px; margin-bottom: 20px; }
+        .pv-sub { font-size: 26px; color: #86868b; line-height: 1.3; margin-bottom: 40px; }
+        .pv-btn { display: inline-block; padding: 20px 45px; background: var(--apple-blue); color: white; border-radius: 40px; font-weight: 600; font-size: 18px; }
 
-        .save-btn { position: fixed; bottom: 30px; left: 30px; padding: 18px 40px; background: #0071e3; color: white; border: none; border-radius: 30px; font-weight: 600; box-shadow: 0 10px 20px rgba(0,113,227,0.3); cursor: pointer; z-index: 50; }
+        /* Action Buttons */
+        .publish-btn {
+            position: fixed; top: 30px; left: 30px; padding: 12px 24px;
+            background: #000; color: white; border-radius: 20px; font-weight: 600;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .publish-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="login-box">
+<div id="login-overlay">
+    <div class="login-card">
         <h1>Pilot Studio</h1>
-        <p>הכנס סיסמה לניהול האתר</p>
-        <input type="password" id="admin-pass" placeholder="••••••••">
-        <button class="login-btn" onclick="tryLogin()">כניסה למערכת</button>
+        <p style="color: #86868b; margin-bottom: 30px;">הקש סיסמה וצא לדרך</p>
+        <input type="password" id="pass-field" class="login-input" autofocus>
     </div>
 </div>
 
-<div id="admin-panel">
-    <div class="sidebar">
-        <h2 style="font-size: 20px;">עורך האתר</h2>
-        <div class="nav-item active" onclick="setTab('content')">📝 תוכן האתר</div>
-        <div class="nav-item" onclick="setTab('design')">🎨 עיצוב ומותג</div>
-        <div class="nav-item" onclick="setTab('settings')">⚙️ הגדרות שרת</div>
-
-        <div id="content" class="editor-section active">
-            <div class="field">
-                <label>כותרת ראשית</label>
-                <input type="text" id="h-title" oninput="liveUpdate()">
-            </div>
-            <div class="field">
-                <label>תיאור (Hero Subtitle)</label>
-                <textarea id="h-sub" oninput="liveUpdate()" rows="4"></textarea>
-            </div>
-            <div class="field">
-                <label>טקסט כפתור מרכזי</label>
-                <input type="text" id="h-btn" oninput="liveUpdate()">
-            </div>
+<div id="workspace">
+    <div class="inspector">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 20px; margin: 0;">Editor</h2>
+            <span style="font-size: 12px; background: #eee; padding: 4px 10px; border-radius: 20px;">v2.0 Pro</span>
         </div>
 
-        <div id="design" class="editor-section">
-            <div class="field">
-                <label>צבע מותג מרכזי</label>
-                <input type="color" id="h-color" oninput="liveUpdate()">
-            </div>
-            <div class="field">
-                <label>מצב תצוגה</label>
-                <select id="h-mode" style="width:100%; padding:10px; border-radius:10px;" onchange="liveUpdate()">
-                    <option value="light">יום (Light)</option>
-                    <option value="dark">לילה (Dark)</option>
-                </select>
-            </div>
+        <div class="control-group">
+            <div class="section-label">Main Content</div>
+            <label>Title</label>
+            <input type="text" id="in-title" oninput="sync()">
+        </div>
+
+        <div class="control-group">
+            <label>Subtitle</label>
+            <textarea id="in-sub" oninput="sync()" rows="3"></textarea>
+        </div>
+
+        <div class="control-group">
+            <div class="section-label">Brand Design</div>
+            <label>Primary Color</label>
+            <input type="color" id="in-color" oninput="sync()" style="width:100%; height:40px; border:none; margin-top:10px;">
+        </div>
+
+        <div class="control-group">
+            <label>Button Text</label>
+            <input type="text" id="in-btn" oninput="sync()">
         </div>
     </div>
 
-    <div class="canvas">
-        <div class="site-mockup" id="site-preview">
-            <nav style="display: flex; justify-content: space-between; margin-bottom: 100px;">
-                <div style="font-weight: 700; font-size: 20px;">PILOT.</div>
-                <div style="display: flex; gap: 20px; color: #86868b; font-size: 14px;">
-                    <span>בית</span><span>קורסים</span><span>צור קשר</span>
+    <div class="viewport">
+        <div class="device-frame" id="live-site">
+            <nav style="padding: 30px 60px; display: flex; justify-content: space-between; font-weight: 600;">
+                <span>PILOT.</span>
+                <div style="display: flex; gap: 30px; font-size: 14px; color: #86868b;">
+                    <span>Shop</span><span>Learn</span><span>Support</span>
                 </div>
             </nav>
-            <div class="preview-hero-h1" id="p-title">כותרת האתר</div>
-            <div class="preview-hero-p" id="p-sub">כאן יופיע תיאור העסק שלך שימשוך לקוחות חדשים</div>
-            <div class="preview-btn" id="p-btn">התחילו עכשיו</div>
+            <div class="pv-hero">
+                <div class="pv-title" id="p-title">טוען...</div>
+                <div class="pv-sub" id="p-sub">מתחבר לנתונים שלך...</div>
+                <div class="pv-btn" id="p-btn">Action</div>
+            </div>
         </div>
     </div>
 </div>
 
-<button class="save-btn" onclick="finalSave()">פרסם שינויים לאתר</button>
+<div class="publish-btn" onclick="publish()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    Publish
+</div>
 
 <script>
-    let masterPassword = "";
-    const API = "https://YOUR-URL.onrender.com"; // חובה לעדכן
+    const API = "https://YOUR-RENDER-URL.onrender.com";
+    let masterPass = "";
 
-    function tryLogin() {
-        const pass = document.getElementById('admin-pass').value;
-        if(pass === "admin123") {
-            masterPassword = pass;
-            document.getElementById('login-screen').style.opacity = "0";
-            setTimeout(() => {
-                document.getElementById('login-screen').style.display = "none";
-                document.getElementById('admin-panel').style.display = "grid";
-            }, 500);
-            loadData();
-        } else { alert("סיסמה שגויה אחי"); }
-    }
+    // Login Logic
+    document.getElementById('pass-field').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') {
+            const val = e.target.value;
+            if(val === "admin123") {
+                masterPass = val;
+                document.getElementById('login-overlay').style.transform = "translateY(-100%)";
+                setTimeout(() => {
+                    document.getElementById('workspace').style.display = "grid";
+                    load();
+                }, 600);
+            } else {
+                e.target.style.borderColor = "red";
+                setTimeout(() => e.target.style.borderColor = "#333", 500);
+            }
+        }
+    });
 
-    function setTab(tabId) {
-        document.querySelectorAll('.editor-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
-    }
-
-    function liveUpdate() {
-        const title = document.getElementById('h-title').value;
-        const sub = document.getElementById('h-sub').value;
-        const btn = document.getElementById('h-btn').value;
-        const color = document.getElementById('h-color').value;
-        const mode = document.getElementById('h-mode').value;
+    function sync() {
+        const title = document.getElementById('in-title').value;
+        const sub = document.getElementById('in-sub').value;
+        const btn = document.getElementById('in-btn').value;
+        const color = document.getElementById('in-color').value;
 
         document.getElementById('p-title').innerText = title;
         document.getElementById('p-sub').innerText = sub;
         document.getElementById('p-btn').innerText = btn;
         document.getElementById('p-btn').style.background = color;
-        
-        const mockup = document.getElementById('site-preview');
-        if(mode === 'dark') {
-            mockup.style.background = '#1d1d1f';
-            mockup.style.color = 'white';
-        } else {
-            mockup.style.background = 'white';
-            mockup.style.color = '#1d1d1f';
-        }
+        document.documentElement.style.setProperty('--apple-blue', color);
     }
 
-    async function loadData() {
+    async function load() {
         const res = await fetch(`${API}/get-content`);
         const data = await res.json();
-        document.getElementById('h-title').value = data.hero.title;
-        document.getElementById('h-sub').value = data.hero.subtitle;
-        document.getElementById('h-btn').value = data.buttons.main;
-        document.getElementById('h-color').value = data.config.primaryColor;
-        liveUpdate();
+        
+        document.getElementById('in-title').value = data.hero.title;
+        document.getElementById('in-sub').value = data.hero.subtitle;
+        document.getElementById('in-btn').value = data.hero.btnText || "Get Started";
+        document.getElementById('in-color').value = data.config.primaryColor;
+        sync();
     }
 
-    async function finalSave() {
+    async function publish() {
         const newContent = {
-            config: { primaryColor: document.getElementById('h-color').value, darkMode: document.getElementById('h-mode').value === 'dark' },
-            hero: { title: document.getElementById('h-title').value, subtitle: document.getElementById('h-sub').value },
-            buttons: { main: document.getElementById('h-btn').value }
+            config: { primaryColor: document.getElementById('in-color').value },
+            hero: { 
+                title: document.getElementById('in-title').value, 
+                subtitle: document.getElementById('in-sub').value,
+                btnText: document.getElementById('in-btn').value
+            }
         };
 
         const res = await fetch(`${API}/update-content`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ password: masterPassword, newContent })
+            body: JSON.stringify({ password: masterPass, newContent })
         });
-
-        if(res.ok) alert("מזל טוב! האתר עודכן חי.");
+        
+        if(res.ok) alert("✅ Live site updated!");
     }
 </script>
 </body>
