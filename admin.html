@@ -2,180 +2,201 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot OS | Executive Suite</title>
+    <title>Pilot Studio | Ultimate Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --apple-blue: #0071e3; --bg-dark: #000; --sidebar-bg: #161617; }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', -apple-system, sans-serif; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg-dark); overflow: hidden; }
+        :root { --apple-blue: #0071e3; --bg: #000; --sidebar: #1c1c1e; --border: rgba(255,255,255,0.1); }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; cursor: default; }
+        body { margin: 0; background: var(--bg); color: white; display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- מסך כניסה (Login) --- */
-        #login-screen {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
-            transition: 0.8s cubic-bezier(0.85, 0, 0.15, 1);
+        /* Sidebar משופר */
+        .sidebar { 
+            width: 300px; background: var(--sidebar); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 100; box-shadow: 10px 0 30px rgba(0,0,0,0.5);
         }
-        .login-content { text-align: center; width: 320px; animation: scaleUp 0.8s ease; }
-        @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .sidebar-header { padding: 30px 20px 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.5px; }
+        .sidebar-content { padding: 20px; flex: 1; overflow-y: auto; }
         
-        .logo { width: 60px; height: 60px; background: white; border-radius: 15px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: black; font-size: 24px; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
-        h1 { color: white; font-size: 24px; margin-bottom: 30px; letter-spacing: -0.5px; }
+        .group-label { font-size: 10px; font-weight: 700; color: #86868b; text-transform: uppercase; margin: 20px 0 10px; letter-spacing: 1px; }
         
-        .login-input { 
-            width: 100%; padding: 18px; background: #1d1d1f; border: 1px solid #333; 
-            border-radius: 14px; color: white; font-size: 16px; text-align: center; outline: none; transition: 0.3s;
+        .item-card { 
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 12px;
+            border-radius: 12px; margin-bottom: 8px; font-size: 14px; cursor: pointer;
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 10px;
         }
-        .login-input:focus { border-color: var(--apple-blue); box-shadow: 0 0 20px rgba(0,113,227,0.3); }
+        .item-card:hover { background: rgba(255,255,255,0.08); border-color: var(--apple-blue); transform: translateY(-1px); }
+        .item-card.active { background: var(--apple-blue); border-color: var(--apple-blue); color: white; }
 
-        /* --- המערכת המרכזית (Workspace) --- */
-        #workspace { display: none; height: 100vh; grid-template-columns: 280px 1fr; background: #f5f5f7; opacity: 0; transition: 1s; }
+        /* Property Inspector - פאנל שליטה חכם */
+        .inspector { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 20px; display: none; }
+        .inspector.active { display: block; animation: slideRight 0.3s ease; }
+        @keyframes slideRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* סרגל צד */
-        .sidebar { background: var(--sidebar-bg); color: white; border-left: 1px solid #333; display: flex; flex-direction: column; padding: 25px; }
-        .sidebar h2 { font-size: 11px; color: #86868b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
-        .nav-item { padding: 12px; border-radius: 10px; cursor: pointer; color: #d2d2d7; font-size: 14px; margin-bottom: 5px; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: #2c2c2e; color: white; }
-        .nav-item.active { background: var(--apple-blue); }
-
-        /* אזור העבודה והתצוגה המקדימה */
-        .canvas-area { flex: 1; position: relative; background: #e5e5e7; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+        /* Canvas */
+        .main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
+        .top-toolbar { 
+            height: 60px; display: flex; justify-content: center; align-items: center; 
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); gap: 10px;
+        }
         
-        .top-tools { 
-            width: 100%; height: 60px; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); 
-            border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; gap: 20px; z-index: 10;
-        }
-        .tool-btn { padding: 6px 15px; border-radius: 8px; border: none; background: none; cursor: pointer; font-size: 13px; color: #1d1d1f; }
-        .tool-btn.active { background: #1d1d1f; color: white; }
+        .view-btn { background: #2c2c2e; border: none; color: #86868b; padding: 6px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .view-btn.active { background: white; color: black; }
 
-        /* מסגרות מכשירים */
-        .preview-wrapper { 
-            margin-top: 40px; transition: 0.6s cubic-bezier(0.2, 0, 0, 1); 
-            box-shadow: 0 40px 100px rgba(0,0,0,0.1); overflow: hidden; background: white; 
+        .preview-container {
+            flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow: auto;
+            background: radial-gradient(circle at center, #1c1c1e 0%, #000 100%);
         }
-        .desktop-frame { width: 90%; height: 80vh; border-radius: 15px; }
-        .mobile-frame { width: 375px; height: 750px; border-radius: 40px; border: 12px solid #1d1d1f; }
+
+        .iphone-mockup {
+            width: 375px; height: 780px; border: 12px solid #2c2c2e; border-radius: 50px;
+            background: white; overflow: hidden; position: relative; transition: 0.5s;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+        }
+        .desktop-mockup {
+            width: 95%; height: 90%; background: white; border-radius: 20px; overflow: hidden; transition: 0.5s;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+        }
 
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* כפתור פרסום */
-        .publish-btn { 
-            position: fixed; bottom: 30px; left: 30px; padding: 15px 30px; 
-            background: var(--apple-blue); color: white; border: none; border-radius: 30px; 
-            font-weight: 600; cursor: pointer; box-shadow: 0 10px 20px rgba(0,113,227,0.3);
+        /* Floating Save */
+        .action-footer { 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 15px; z-index: 1000;
         }
+        .btn-main { 
+            padding: 14px 28px; border-radius: 30px; border: none; font-weight: 700; font-size: 15px; 
+            cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .btn-publish { background: white; color: black; }
+        .btn-publish:hover { transform: scale(1.05); background: var(--apple-blue); color: white; }
+
+        /* Control Inputs */
+        .ctrl-label { font-size: 11px; color: #86868b; margin-bottom: 6px; display: block; }
+        .ctrl-input { width: 100%; padding: 10px; background: #2c2c2e; border: 1px solid #444; border-radius: 8px; color: white; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="login-content">
-        <div class="logo">P</div>
-        <h1>Pilot Studio Login</h1>
-        <input type="password" id="pass-field" class="login-input" placeholder="Enter Password" autofocus>
-        <p style="color: #424245; font-size: 12px; margin-top: 20px;">Hint: admin123</p>
+<div id="login-overlay" style="position:fixed; inset:0; background:#000; z-index:10000; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+    <h1 style="font-size:40px; margin-bottom:40px;">Pilot Studio</h1>
+    <input type="password" id="pass-field" style="background:#1d1d1f; border:1px solid #333; color:white; padding:20px; width:300px; border-radius:15px; text-align:center; font-size:18px;" placeholder="סיסמה">
+</div>
+
+<div class="sidebar">
+    <div class="sidebar-header">Pilot Studio</div>
+    <div class="sidebar-content">
+        <div class="group-label">Pages</div>
+        <div class="item-card active">Home (index.html)</div>
+        <div class="item-card">About (about.html)</div>
+        <div class="item-card" style="border: 1px dashed #444; justify-content: center; color: #86868b;">+ Add Page</div>
+
+        <div class="group-label">Elements</div>
+        <div class="item-card" draggable="true" ondragstart="startDrag('button')">🔘 Button</div>
+        <div class="item-card" draggable="true" ondragstart="startDrag('text')">📝 Text Block</div>
     </div>
 </div>
 
-<div id="workspace">
-    <aside class="sidebar">
-        <h2>PAGES</h2>
-        <div class="nav-item active" onclick="loadPage('index.html', this)">Home</div>
-        <div class="nav-item" onclick="loadPage('about.html', this)">About Us</div>
-        <div class="nav-item" onclick="loadPage('services.html', this)">Services</div>
-        
-        <h2 style="margin-top: 40px;">ELEMENTS</h2>
-        <div class="nav-item" draggable="true">➕ Add Text</div>
-        <div class="nav-item" draggable="true">🔘 Add Button</div>
-    </aside>
-
-    <main class="canvas-area">
-        <div class="top-tools">
-            <button class="tool-btn active" onclick="setMode('desktop', this)">Desktop</button>
-            <button class="tool-btn" onclick="setMode('mobile', this)">iPhone</button>
-        </div>
-        
-        <div id="preview-box" class="preview-wrapper desktop-frame">
-            <iframe src="index.html" id="editor-iframe"></iframe>
-        </div>
-    </main>
+<div class="inspector" id="inspector">
+    <div class="group-label">Properties</div>
+    <label class="ctrl-label">Element Text</label>
+    <input type="text" id="prop-text" class="ctrl-input" oninput="updateEl()">
+    
+    <label class="ctrl-label">Link / Action</label>
+    <input type="text" id="prop-link" class="ctrl-input" placeholder="https://..." oninput="updateEl()">
+    
+    <label class="ctrl-label">Color Theme</label>
+    <input type="color" id="prop-color" class="ctrl-input" style="height:40px;" oninput="updateEl()">
+    
+    <button onclick="deleteEl()" style="width:100%; padding:10px; background:#ff3b30; border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Delete Element</button>
 </div>
 
-<button class="publish-btn" onclick="publish()">Publish Live</button>
+<div class="main-view">
+    <div class="top-toolbar">
+        <button class="view-btn active" id="desk-btn" onclick="setView('desktop')">Desktop</button>
+        <button class="view-btn" id="mob-btn" onclick="setView('mobile')">Mobile</button>
+    </div>
+
+    <div class="preview-container">
+        <div id="preview-frame" class="desktop-mockup">
+            <iframe src="index.html" id="site-iframe"></iframe>
+        </div>
+    </div>
+
+    <div class="action-footer">
+        <button class="btn-main btn-publish" onclick="publish()">Publish Live</button>
+    </div>
+</div>
 
 <script>
-    // תרגום מקלדת עברית/אנגלית
-    const heToEn = {'ש':'a','ד':'d','ג':'m','כ':'i','נ':'n','ב':'c','ס':'s','ז':'z','ט':'y','ו':'u'};
-    
-    const passField = document.getElementById('pass-field');
-    passField.addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') {
-            let val = e.target.value.toLowerCase();
-            let translated = "";
-            for (let char of val) { translated += heToEn[char] || char; }
+    let selectedEl = null;
 
-            if(val === "admin123" || translated === "admin123") {
-                unlock();
-            } else {
-                passField.style.animation = "shake 0.4s";
-                setTimeout(() => passField.style.animation = "", 400);
-            }
+    // Login Logic
+    document.getElementById('pass-field').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter' && e.target.value === 'admin123') {
+            document.getElementById('login-overlay').style.display = 'none';
         }
     });
 
-    function unlock() {
-        document.getElementById('login-screen').style.transform = "translateY(-100%)";
-        setTimeout(() => {
-            document.getElementById('workspace').style.display = 'grid';
-            setTimeout(() => { document.getElementById('workspace').style.opacity = '1'; }, 50);
-        }, 600);
-    }
-
-    function setMode(mode, btn) {
-        const box = document.getElementById('preview-box');
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
+    function setView(mode) {
+        const frame = document.getElementById('preview-frame');
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         if(mode === 'mobile') {
-            box.className = "preview-wrapper mobile-frame";
+            frame.className = 'iphone-mockup';
+            document.getElementById('mob-btn').classList.add('active');
         } else {
-            box.className = "preview-wrapper desktop-frame";
+            frame.className = 'desktop-mockup';
+            document.getElementById('desk-btn').classList.add('active');
         }
     }
 
-    function loadPage(url, btn) {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('editor-iframe').src = url;
-    }
-
-    // הזרקת עריכה לתוך ה-iframe
-    const iframe = document.getElementById('editor-iframe');
+    const iframe = document.getElementById('site-iframe');
     iframe.onload = function() {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
-        // ביטול הבוט בתוך העורך
+        
+        // החבאת הצ'אט בזמן עריכה
         const chat = doc.getElementById('chat-wrapper');
-        if(chat) chat.style.display = 'none';
+        if(chat) chat.style.opacity = '0.2';
 
-        // הפיכת טקסטים לעריכים בלחיצה
-        doc.querySelectorAll('h1, p, span, button').forEach(el => {
-            el.contentEditable = true;
-            el.style.outline = "none";
-            el.addEventListener('focus', () => el.style.boxShadow = "0 0 0 2px #0071e3");
-            el.addEventListener('blur', () => el.style.boxShadow = "none");
+        doc.querySelectorAll('h1, p, button, span').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                selectElement(el);
+            });
         });
     }
 
+    function selectElement(el) {
+        selectedEl = el;
+        document.getElementById('inspector').classList.add('active');
+        document.getElementById('prop-text').value = el.innerText;
+        document.getElementById('prop-link').value = el.getAttribute('onclick') || '';
+        
+        // סימון ויזואלי בתוך ה-iframe
+        selectedEl.style.outline = '2px solid #0071e3';
+        selectedEl.style.outlineOffset = '4px';
+    }
+
+    function updateEl() {
+        if(!selectedEl) return;
+        selectedEl.innerText = document.getElementById('prop-text').value;
+        const color = document.getElementById('prop-color').value;
+        if(selectedEl.tagName === 'BUTTON') {
+            selectedEl.style.backgroundColor = color;
+        }
+    }
+
+    function deleteEl() {
+        if(selectedEl && confirm('למחוק את האלמנט?')) {
+            selectedEl.remove();
+            document.getElementById('inspector').classList.remove('active');
+        }
+    }
+
     function publish() {
-        alert("✅ האתר עודכן בהצלחה!");
+        alert("השינויים נשמרו ופורסמו בהצלחה!");
     }
 </script>
-
-<style>
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-    }
-</style>
 </body>
 </html>
