@@ -1,217 +1,217 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>Pilot Studio | Canvas Engine</title>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root { --apple-blue: #0071e3; --bg: #0b0b0c; --panel: #1c1c1e; --border: rgba(255,255,255,0.1); }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
-        body { margin: 0; background: var(--bg); color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    <meta charset="UTF-8">
+    <title>Pilot Studio | Canvas Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --apple-blue: #0071e3; --bg: #0b0b0c; --panel: #1c1c1e; --border: rgba(255,255,255,0.1); }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
+        body { margin: 0; background: var(--bg); color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* Top Bar & Tabs */
-        .top-nav { 
-            height: 50px; background: #000; border-bottom: 1px solid var(--border); 
-            display: flex; align-items: flex-end; padding: 0 20px; gap: 5px;
-        }
-        .tab { 
-            padding: 8px 20px; background: #1c1c1e; border-radius: 10px 10px 0 0; 
-            font-size: 13px; color: #86868b; cursor: pointer; transition: 0.2s; border: 1px solid var(--border); border-bottom: none;
-        }
-        .tab.active { background: var(--apple-blue); color: white; border-color: var(--apple-blue); }
+        /* Top Bar & Tabs */
+        .top-nav { 
+            height: 50px; background: #000; border-bottom: 1px solid var(--border); 
+            display: flex; align-items: flex-end; padding: 0 20px; gap: 5px;
+        }
+        .tab { 
+            padding: 8px 20px; background: #1c1c1e; border-radius: 10px 10px 0 0; 
+            font-size: 13px; color: #86868b; cursor: pointer; transition: 0.2s; border: 1px solid var(--border); border-bottom: none;
+        }
+        .tab.active { background: var(--apple-blue); color: white; border-color: var(--apple-blue); }
 
-        /* Main Layout */
-        .studio-container { flex: 1; display: flex; overflow: hidden; }
+        /* Main Layout */
+        .studio-container { flex: 1; display: flex; overflow: hidden; }
 
-        /* Sidebar - Assets */
-        .sidebar { 
-            width: 260px; background: var(--panel); border-left: 1px solid var(--border);
-            padding: 20px; display: flex; flex-direction: column; gap: 20px;
-        }
-        .asset-item { 
-            padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-            border-radius: 12px; cursor: grab; font-size: 14px; text-align: center;
-        }
-        .asset-item:hover { border-color: var(--apple-blue); background: rgba(255,255,255,0.08); }
+        /* Sidebar - Assets */
+        .sidebar { 
+            width: 260px; background: var(--panel); border-left: 1px solid var(--border);
+            padding: 20px; display: flex; flex-direction: column; gap: 20px;
+        }
+        .asset-item { 
+            padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 12px; cursor: grab; font-size: 14px; text-align: center;
+        }
+        .asset-item:hover { border-color: var(--apple-blue); background: rgba(255,255,255,0.08); }
 
-        /* Canvas Area */
-        .canvas-wrapper { 
-            flex: 1; position: relative; background: #111; display: flex; 
-            justify-content: center; align-items: center; overflow: auto; padding: 50px;
-        }
-        
-        /* המשטח שעליו משחקים */
-        .artboard {
-            width: 1000px; min-height: 1200px; background: white; border-radius: 2px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.5); position: relative; transform-origin: top center;
-        }
+        /* Canvas Area */
+        .canvas-wrapper { 
+            flex: 1; position: relative; background: #111; display: flex; 
+            justify-content: center; align-items: center; overflow: auto; padding: 50px;
+        }
+        
+        /* המשטח שעליו משחקים */
+        .artboard {
+            width: 1000px; min-height: 1200px; background: white; border-radius: 2px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5); position: relative; transform-origin: top center;
+        }
 
-        /* סרגל כלים צף (צמוד לאלמנט) */
-        #element-tools {
-            position: absolute; background: #2c2c2e; padding: 5px; border-radius: 8px;
-            display: none; gap: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 1000;
-            border: 1px solid #444; align-items: center;
-        }
-        .tool-icon { 
-            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border-radius: 5px; transition: 0.2s; font-size: 16px;
-        }
-        .tool-icon:hover { background: #444; }
+        /* סרגל כלים צף (צמוד לאלמנט) */
+        #element-tools {
+            position: absolute; background: #2c2c2e; padding: 5px; border-radius: 8px;
+            display: none; gap: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 1000;
+            border: 1px solid #444; align-items: center;
+        }
+        .tool-icon { 
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border-radius: 5px; transition: 0.2s; font-size: 16px;
+        }
+        .tool-icon:hover { background: #444; }
 
-        /* כפתור שמירה */
-        .save-btn {
-            position: fixed; bottom: 30px; left: 30px; padding: 15px 35px;
-            background: white; color: black; border-radius: 30px; font-weight: 700;
-            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: none;
-        }
-    </style>
+        /* כפתור שמירה */
+        .save-btn {
+            position: fixed; bottom: 30px; left: 30px; padding: 15px 35px;
+            background: white; color: black; border-radius: 30px; font-weight: 700;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: none;
+        }
+    </style>
 </head>
 <body>
 
 <nav class="top-nav" id="tabs-container">
-    <div class="tab active" onclick="switchTab('index.html', this)">Home</div>
-    <div class="tab" onclick="addPageTab()">+ New Page</div>
+    <div class="tab active" onclick="switchTab('index.html', this)">Home</div>
+    <div class="tab" onclick="addPageTab()">+ New Page</div>
 </nav>
 
 <div class="studio-container">
-    <aside class="sidebar">
-        <div style="color: #86868b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Library</div>
-        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'h1')">Title</div>
-        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'p')">Paragraph</div>
-        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'button')">Button</div>
-    </aside>
+    <aside class="sidebar">
+        <div style="color: #86868b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Library</div>
+        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'h1')">Title</div>
+        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'p')">Paragraph</div>
+        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'button')">Button</div>
+    </aside>
 
-    <main class="canvas-wrapper">
-        <div id="artboard" class="artboard">
-            </div>
-    </main>
+    <main class="canvas-wrapper">
+        <div id="artboard" class="artboard">
+            </div>
+    </main>
 </div>
 
 <div id="element-tools">
-    <div class="tool-icon" title="Link" onclick="promptLink()">🔗</div>
-    <div class="tool-icon" title="Color" onclick="document.getElementById('color-picker').click()">🎨</div>
-    <div class="tool-icon" title="Delete" onclick="deleteActiveElement()" style="color:#ff3b30;">🗑️</div>
-    <input type="color" id="color-picker" style="display:none;" oninput="changeColor(this.value)">
+    <div class="tool-icon" title="Link" onclick="promptLink()">🔗</div>
+    <div class="tool-icon" title="Color" onclick="document.getElementById('color-picker').click()">🎨</div>
+    <div class="tool-icon" title="Delete" onclick="deleteActiveElement()" style="color:#ff3b30;">🗑️</div>
+    <input type="color" id="color-picker" style="display:none;" oninput="changeColor(this.value)">
 </div>
 
 <button class="save-btn" onclick="saveWork()">Publish Live</button>
 
 <script>
-    let activeElement = null;
+    let activeElement = null;
 
-    // פונקציית גרירת אלמנטים חדשים למסך
-    const artboard = document.getElementById('artboard');
-    artboard.ondragover = (e) => e.preventDefault();
-    artboard.ondrop = (e) => {
-        const type = e.dataTransfer.getData('type');
-        const el = document.createElement(type === 'button' ? 'button' : type);
-        el.innerText = "New " + type;
-        el.style.position = "absolute";
-        el.style.left = e.offsetX + "px";
-        el.style.top = e.offsetY + "px";
-        el.style.cursor = "move";
-        if(type === 'button') {
-            el.style.padding = "12px 24px";
-            el.style.background = "#0071e3";
-            el.style.color = "white";
-            el.style.border = "none";
-            el.style.borderRadius = "20px";
-        }
-        makeDraggable(el);
-        artboard.appendChild(el);
-    };
+    // פונקציית גרירת אלמנטים חדשים למסך
+    const artboard = document.getElementById('artboard');
+    artboard.ondragover = (e) => e.preventDefault();
+    artboard.ondrop = (e) => {
+        const type = e.dataTransfer.getData('type');
+        const el = document.createElement(type === 'button' ? 'button' : type);
+        el.innerText = "New " + type;
+        el.style.position = "absolute";
+        el.style.left = e.offsetX + "px";
+        el.style.top = e.offsetY + "px";
+        el.style.cursor = "move";
+        if(type === 'button') {
+            el.style.padding = "12px 24px";
+            el.style.background = "#0071e3";
+            el.style.color = "white";
+            el.style.border = "none";
+            el.style.borderRadius = "20px";
+        }
+        makeDraggable(el);
+        artboard.appendChild(el);
+    };
 
-    // הפיכת אלמנט לניתן להזזה (כמו תמונה) ולעריכה
-    function makeDraggable(el) {
-        let isDragging = false;
-        
-        el.addEventListener('mousedown', (e) => {
-            if (e.target.contentEditable === "true") return;
-            isDragging = true;
-            activeElement = el;
-            showTools(el);
-            
-            let shiftX = e.clientX - el.getBoundingClientRect().left;
-            let shiftY = e.clientY - el.getBoundingClientRect().top;
+    // הפיכת אלמנט לניתן להזזה (כמו תמונה) ולעריכה
+    function makeDraggable(el) {
+        let isDragging = false;
+        
+        el.addEventListener('mousedown', (e) => {
+            if (e.target.contentEditable === "true") return;
+            isDragging = true;
+            activeElement = el;
+            showTools(el);
+            
+            let shiftX = e.clientX - el.getBoundingClientRect().left;
+            let shiftY = e.clientY - el.getBoundingClientRect().top;
 
-            function moveAt(pageX, pageY) {
-                el.style.left = (pageX - artboard.getBoundingClientRect().left - shiftX) + 'px';
-                el.style.top = (pageY - artboard.getBoundingClientRect().top - shiftY) + 'px';
-                showTools(el); // הסרגל עוקב אחרי האלמנט
-            }
+            function moveAt(pageX, pageY) {
+                el.style.left = (pageX - artboard.getBoundingClientRect().left - shiftX) + 'px';
+                el.style.top = (pageY - artboard.getBoundingClientRect().top - shiftY) + 'px';
+                showTools(el); // הסרגל עוקב אחרי האלמנט
+            }
 
-            function onMouseMove(e) { if(isDragging) moveAt(e.pageX, e.pageY); }
-            document.addEventListener('mousemove', onMouseMove);
+            function onMouseMove(e) { if(isDragging) moveAt(e.pageX, e.pageY); }
+            document.addEventListener('mousemove', onMouseMove);
 
-            el.onmouseup = () => {
-                isDragging = false;
-                document.removeEventListener('mousemove', onMouseMove);
-            };
-        });
+            el.onmouseup = () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+            };
+        });
 
-        el.addEventListener('dblclick', () => {
-            el.contentEditable = true;
-            el.focus();
-        });
+        el.addEventListener('dblclick', () => {
+            el.contentEditable = true;
+            el.focus();
+        });
 
-        el.onblur = () => el.contentEditable = false;
-        el.ondragstart = () => false;
-    }
+        el.onblur = () => el.contentEditable = false;
+        el.ondragstart = () => false;
+    }
 
-    function showTools(el) {
-        const tools = document.getElementById('element-tools');
-        const rect = el.getBoundingClientRect();
-        tools.style.display = 'flex';
-        tools.style.top = (window.scrollY + rect.top - 45) + 'px';
-        tools.style.left = (window.scrollX + rect.left) + 'px';
-    }
+    function showTools(el) {
+        const tools = document.getElementById('element-tools');
+        const rect = el.getBoundingClientRect();
+        tools.style.display = 'flex';
+        tools.style.top = (window.scrollY + rect.top - 45) + 'px';
+        tools.style.left = (window.scrollX + rect.left) + 'px';
+    }
 
-    function promptLink() {
-        const url = prompt("Enter URL:", activeElement.dataset.link || "https://");
-        if(url) activeElement.dataset.link = url;
-    }
+    function promptLink() {
+        const url = prompt("Enter URL:", activeElement.dataset.link || "https://");
+        if(url) activeElement.dataset.link = url;
+    }
 
-    function changeColor(color) {
-        if(activeElement) {
-            if(activeElement.tagName === 'BUTTON') activeElement.style.backgroundColor = color;
-            else activeElement.style.color = color;
-        }
-    }
+    function changeColor(color) {
+        if(activeElement) {
+            if(activeElement.tagName === 'BUTTON') activeElement.style.backgroundColor = color;
+            else activeElement.style.color = color;
+        }
+    }
 
-    function deleteActiveElement() {
-        if(activeElement && confirm('Delete?')) {
-            activeElement.remove();
-            document.getElementById('element-tools').style.display = 'none';
-        }
-    }
+    function deleteActiveElement() {
+        if(activeElement && confirm('Delete?')) {
+            activeElement.remove();
+            document.getElementById('element-tools').style.display = 'none';
+        }
+    }
 
-    function addPageTab() {
-        const name = prompt("Page Name:");
-        if(name) {
-            const tabs = document.getElementById('tabs-container');
-            const newTab = document.createElement('div');
-            newTab.className = 'tab';
-            newTab.innerText = name;
-            newTab.onclick = () => switchTab(name, newTab);
-            tabs.insertBefore(newTab, tabs.lastElementChild);
-        }
-    }
+    function addPageTab() {
+        const name = prompt("Page Name:");
+        if(name) {
+            const tabs = document.getElementById('tabs-container');
+            const newTab = document.createElement('div');
+            newTab.className = 'tab';
+            newTab.innerText = name;
+            newTab.onclick = () => switchTab(name, newTab);
+            tabs.insertBefore(newTab, tabs.lastElementChild);
+        }
+    }
 
-    function switchTab(name, el) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        // כאן תוסיף לוגיקה לטעינת תוכן הדף הספציפי
-        alert("Switching to: " + name);
-    }
+    function switchTab(name, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        // כאן תוסיף לוגיקה לטעינת תוכן הדף הספציפי
+        alert("Switching to: " + name);
+    }
 
-    function saveWork() {
-        alert("🚀 Published! Your site is live.");
-    }
+    function saveWork() {
+        alert("🚀 Published! Your site is live.");
+    }
 
-    // הפיכת אלמנטים קיימים ל-Draggable בטעינה
-    window.onload = () => {
-        document.querySelectorAll('#artboard *').forEach(makeDraggable);
-    };
+    // הפיכת אלמנטים קיימים ל-Draggable בטעינה
+    window.onload = () => {
+        document.querySelectorAll('#artboard *').forEach(makeDraggable);
+    };
 </script>
 
 </body>
