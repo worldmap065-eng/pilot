@@ -2,132 +2,192 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot Design System</title>
+    <title>Pilot Studio Pro | Visual Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --apple-blue: #0071e3; --bg-dark: #161617; --sidebar-bg: rgba(255,255,255,0.02); }
-        body { margin: 0; background: #000; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; height: 100vh; }
+        :root { --apple-blue: #0071e3; --bg: #000; --sidebar: #161617; --panel: #1c1c1e; }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', -apple-system, sans-serif; }
+        body { margin: 0; background: var(--bg); color: white; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Toolbar */
+        /* Sidebar - ניהול דפים וכלים */
         .sidebar { 
-            width: 320px; background: var(--bg-dark); border-left: 1px solid #333; 
-            padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            backdrop-filter: blur(20px);
+            width: 280px; background: var(--sidebar); border-left: 1px solid #333; 
+            display: flex; flex-direction: column; padding: 20px; z-index: 100;
         }
+        .nav-section { margin-bottom: 30px; }
+        .section-title { font-size: 11px; font-weight: 700; color: #86868b; text-transform: uppercase; margin-bottom: 12px; }
+        .page-item { 
+            padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 5px;
+            transition: 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .page-item:hover { background: #2c2c2e; }
+        .page-item.active { background: var(--apple-blue); color: white; }
 
-        /* Canvas */
-        .main-canvas { 
-            flex: 1; display: flex; flex-direction: column; align-items: center; 
-            padding: 40px; background: #1c1c1e; overflow-y: auto;
+        /* Toolbar - תצוגות ופעולות */
+        .top-nav {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(28, 28, 30, 0.8); backdrop-filter: blur(20px);
+            padding: 8px 20px; border-radius: 30px; display: flex; gap: 15px; border: 1px solid #333; z-index: 1000;
         }
+        .tool-btn { background: none; border: none; color: white; cursor: pointer; padding: 5px 12px; border-radius: 15px; font-size: 13px; }
+        .tool-btn.active { background: #333; font-weight: 600; }
 
-        .page-container {
-            width: 100%; max-width: 1000px; background: white; border-radius: 24px;
-            min-height: 1200px; color: black; padding: 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-            transition: 0.4s cubic-bezier(0.2, 0, 0, 1);
-            outline: none; position: relative;
+        /* Canvas - אזור העבודה */
+        .workspace { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; background: #000; overflow: auto; padding: 60px; }
+        
+        /* דמוי מכשיר */
+        .preview-container {
+            background: white; border-radius: 32px; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5); overflow: hidden; position: relative;
         }
+        .desktop-view { width: 100%; max-width: 1100px; height: 90vh; }
+        .mobile-view { width: 375px; height: 750px; border: 12px solid #1c1c1e; }
 
-        /* Draggable Components */
-        .component-card {
-            background: #2c2c2e; padding: 15px; border-radius: 12px; cursor: grab;
-            border: 1px solid #3a3a3c; font-size: 14px; transition: 0.2s;
-        }
-        .component-card:hover { border-color: var(--apple-blue); background: #3a3a3c; }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        /* Floating Controls */
-        .floating-actions {
-            position: fixed; top: 20px; left: 20px; display: flex; gap: 10px; z-index: 100;
+        /* Floating Editor Menu - התפריט שמופיע כשלוחצים על אלמנט */
+        #floating-menu {
+            position: absolute; background: #2c2c2e; border: 1px solid #444; padding: 10px;
+            border-radius: 12px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000;
+            flex-direction: column; gap: 8px; width: 200px;
         }
-        .btn { 
-            padding: 10px 20px; border-radius: 20px; border: none; font-weight: 600; cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-save { background: var(--apple-blue); color: white; }
-        .btn-device { background: #333; color: white; }
+        #floating-menu input { background: #161617; border: 1px solid #444; color: white; padding: 6px; border-radius: 6px; font-size: 12px; }
 
-        /* Canva-like selection */
-        .editing-now { outline: 2px solid var(--apple-blue); outline-offset: 4px; }
+        /* Publish Button */
+        .publish-btn {
+            position: fixed; bottom: 30px; left: 30px; background: white; color: black;
+            padding: 12px 25px; border-radius: 20px; font-weight: 700; cursor: pointer; border: none;
+        }
     </style>
 </head>
 <body>
 
-<div class="floating-actions">
-    <button class="btn btn-save" onclick="saveToCloud()">Publish Changes</button>
-    <button class="btn btn-device" onclick="resize('400px')">Mobile</button>
-    <button class="btn btn-device" onclick="resize('1000px')">Desktop</button>
-</div>
-
 <div class="sidebar">
-    <h2 style="font-size: 18px; letter-spacing: -0.5px;">Assets Library</h2>
-    <div class="component-card" draggable="true" ondragstart="startDrag('h1')">✦ Huge Title</div>
-    <div class="component-card" draggable="true" ondragstart="startDrag('p')">📝 Paragraph Text</div>
-    <div class="component-card" draggable="true" ondragstart="startDrag('button')">🔘 Apple Style Button</div>
-    <div class="component-card" draggable="true" ondragstart="startDrag('table')">📊 Pricing Table</div>
-    
-    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-    
-    <h3 style="font-size: 14px; color: #86868b;">Pages</h3>
-    <div id="pages-list">
-        <div style="color: var(--apple-blue); font-weight: 600;">○ Home Page</div>
+    <div class="nav-section">
+        <div class="section-title">Pages</div>
+        <div id="pages-list">
+            <div class="page-item active" onclick="switchPage('index.html', this)">Home (index.html)</div>
+            <div class="page-item" onclick="switchPage('about.html', this)">About (about.html)</div>
+        </div>
+        <button onclick="addNewPage()" style="width:100%; margin-top:10px; background:none; border:1px dashed #444; color:#86868b; padding:8px; border-radius:8px; cursor:pointer;">+ Add New Page</button>
+    </div>
+
+    <div class="nav-section">
+        <div class="section-title">Elements</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="page-item" draggable="true" ondragstart="handleDrag('button')">🔘 Button</div>
+            <div class="page-item" draggable="true" ondragstart="handleDrag('text')">📝 Text</div>
+        </div>
     </div>
 </div>
 
-<div class="main-canvas">
-    <div id="editable-page" class="page-container" contenteditable="true">
-        <h1 style="font-size: 64px; font-weight: 700;">Welcome to Pilot</h1>
-        <p style="font-size: 24px; color: #86868b;">Start editing like a pro.</p>
+<div class="top-nav">
+    <button class="tool-btn active" id="btn-desktop" onclick="setDevice('desktop')">Desktop</button>
+    <button class="tool-btn" id="btn-mobile" onclick="setDevice('mobile')">Mobile</button>
+</div>
+
+<div class="workspace">
+    <div id="preview-box" class="preview-container desktop-view">
+        <iframe src="index.html" id="editor-iframe"></iframe>
     </div>
 </div>
+
+<div id="floating-menu">
+    <label style="font-size: 10px; color:#86868b;">Link URL (for buttons)</label>
+    <input type="text" id="link-input" placeholder="https://..." oninput="updateElementLink()">
+    <button onclick="deleteElement()" style="background:#ff3b30; color:white; border:none; padding:5px; border-radius:5px; cursor:pointer; font-size:12px;">Delete Element</button>
+</div>
+
+<button class="publish-btn" onclick="saveSite()">Publish Live</button>
 
 <script>
-    let draggedType = '';
+    const API = "https://YOUR-RENDER-URL.onrender.com";
+    let selectedElement = null;
 
-    function startDrag(type) {
-        draggedType = type;
-    }
-
-    const canvas = document.getElementById('editable-page');
-
-    canvas.addEventListener('dragover', (e) => e.preventDefault());
-    canvas.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const element = createComponent(draggedType);
-        canvas.appendChild(element);
-    });
-
-    function createComponent(type) {
-        const el = document.createElement(type);
-        if(type === 'h1') {
-            el.innerText = "New Heading";
-            el.style.fontSize = "48px";
-        } else if(type === 'button') {
-            el.innerText = "Click Me";
-            el.style.padding = "15px 30px";
-            el.style.background = "#0071e3";
-            el.style.color = "white";
-            el.style.borderRadius = "30px";
-            el.style.border = "none";
-            el.style.display = "block";
-            el.style.marginTop = "20px";
-        } else if(type === 'table') {
-            el.innerHTML = `<table style="width:100%; border-collapse: collapse; margin-top:20px;">
-                <tr style="border-bottom: 1px solid #eee;"><td>Feature</td><td>Price</td></tr>
-                <tr><td>Basic</td><td>$0</td></tr>
-            </table>`;
+    // שינוי תצוגת מכשיר
+    function setDevice(type) {
+        const box = document.getElementById('preview-box');
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        if(type === 'mobile') {
+            box.className = "preview-container mobile-view";
+            document.getElementById('btn-mobile').classList.add('active');
+        } else {
+            box.className = "preview-container desktop-view";
+            document.getElementById('btn-desktop').classList.add('active');
         }
-        return el;
     }
 
-    function resize(width) {
-        canvas.style.maxWidth = width;
+    // מעבר בין דפים
+    function switchPage(url, el) {
+        document.querySelectorAll('.page-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('editor-iframe').src = url;
     }
 
-    async function saveToCloud() {
-        const htmlContent = canvas.innerHTML;
-        // שליחת ה-HTML המעודכן לשרת
-        alert("Saving to Render...");
-        console.log(htmlContent);
+    // עריכה בתוך ה-Iframe
+    const iframe = document.getElementById('editor-iframe');
+    iframe.onload = function() {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+        // נטרול הבוט בתוך העורך כדי שלא יפריע
+        const bot = doc.getElementById('chat-wrapper');
+        if(bot) bot.style.display = 'none';
+
+        // הפיכת טקסטים לעריכים
+        doc.querySelectorAll('h1, p, span, button').forEach(el => {
+            el.contentEditable = true;
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                openFloatingMenu(el, e);
+            });
+        });
+    };
+
+    function openFloatingMenu(el, e) {
+        selectedElement = el;
+        const menu = document.getElementById('floating-menu');
+        menu.style.display = 'flex';
+        // מיקום התפריט ליד הסמן
+        menu.style.top = e.clientY + 'px';
+        menu.style.left = (e.clientX + 50) + 'px';
+        
+        if(el.tagName === 'BUTTON' || el.tagName === 'A') {
+            document.getElementById('link-input').value = el.getAttribute('onclick') || '';
+        }
+    }
+
+    function updateElementLink() {
+        if(selectedElement) {
+            const url = document.getElementById('link-input').value;
+            selectedElement.setAttribute('onclick', `window.location.href='${url}'`);
+        }
+    }
+
+    function deleteElement() {
+        if(selectedElement && confirm('Delete this element?')) {
+            selectedElement.remove();
+            document.getElementById('floating-menu').style.display = 'none';
+        }
+    }
+
+    async function saveSite() {
+        const doc = iframe.contentDocument;
+        const fullHtml = doc.documentElement.innerHTML;
+        alert("Saving version to server...");
+        // כאן תשלח את fullHtml לשרת
+    }
+
+    function addNewPage() {
+        const name = prompt("Page Name (e.g. services.html):");
+        if(name) {
+            const list = document.getElementById('pages-list');
+            const div = document.createElement('div');
+            div.className = "page-item";
+            div.innerText = name;
+            list.appendChild(div);
+        }
     }
 </script>
+
 </body>
 </html>
