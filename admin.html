@@ -2,157 +2,144 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול תוכן האתר | Pilot</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Pilot CMS | Pro Dashboard</title>
     <style>
-        :root {
-            --apple-bg: #f5f5f7;
-            --apple-blue: #0071e3;
-            --card-bg: rgba(255, 255, 255, 0.8);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--apple-bg);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .admin-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        h1 { font-weight: 600; font-size: 24px; margin-bottom: 25px; text-align: center; }
-
-        .field { margin-bottom: 20px; }
-        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #1d1d1f; }
+        :root { --p-color: #0071e3; }
+        body { font-family: -apple-system, system-ui; margin: 0; display: flex; height: 100vh; background: #f5f5f7; }
         
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #d2d2d7;
-            background: rgba(255,255,255,0.5);
-            font-size: 16px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border 0.3s;
-        }
+        /* Sidebar */
+        .sidebar { width: 350px; background: white; border-left: 1px solid #d2d2d7; display: flex; flex-direction: column; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.05); z-index: 10; overflow-y: auto; }
+        
+        /* Preview Area */
+        .preview-area { flex: 1; padding: 40px; display: flex; flex-direction: column; align-items: center; background: #e5e5e5; overflow-y: auto; position: relative; }
+        .browser-mockup { background: white; width: 100%; max-width: 800px; min-height: 1000px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 40px; box-sizing: border-box; }
 
-        input:focus, textarea:focus { border-color: var(--apple-blue); }
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        .tab { cursor: pointer; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 13px; }
+        .tab.active { background: var(--p-color); color: white; }
 
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background-color: var(--apple-blue);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
+        /* Inputs */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #86868b; margin-bottom: 5px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; box-sizing: border-box; }
+        
+        /* Live Preview Tags */
+        .p-hero-t { font-size: 48px; font-weight: 700; color: #1d1d1f; }
+        .p-hero-s { font-size: 24px; color: #86868b; }
+        .p-btn { display: inline-block; padding: 12px 25px; border-radius: 30px; background: var(--p-color); color: white; margin-top: 20px; }
 
-        .btn:hover { opacity: 0.9; }
-        .status { margin-top: 15px; text-align: center; font-size: 14px; }
+        .save-bar { position: sticky; bottom: 0; background: white; padding-top: 20px; border-top: 1px solid #eee; }
+        .btn-save { width: 100%; padding: 15px; background: var(--p-color); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="admin-card">
-    <h1>ניהול תוכן האתר</h1>
-    
-    <div class="field">
-        <label>סיסמה לביצוע שינויים</label>
-        <input type="password" id="password" placeholder="הכנס סיסמה">
+<div class="sidebar">
+    <h2>Pilot Studio</h2>
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('content')">תוכן</div>
+        <div class="tab" onclick="showTab('design')">עיצוב</div>
+        <div class="tab" onclick="showTab('chat')">בוט</div>
     </div>
 
-    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #d2d2d7;">
-
-    <div class="field">
-        <label>כותרת ראשית (Hero)</label>
-        <input type="text" id="hero_title">
+    <div id="content-tab">
+        <div class="input-group">
+            <label>כותרת ראשית</label>
+            <input type="text" id="in-title" oninput="updatePreview()">
+        </div>
+        <div class="input-group">
+            <label>כותרת משנה</label>
+            <textarea id="in-sub" oninput="updatePreview()"></textarea>
+        </div>
+        <div class="input-group">
+            <label>טקסט כפתור</label>
+            <input type="text" id="in-btn" oninput="updatePreview()">
+        </div>
     </div>
 
-    <div class="field">
-        <label>כותרת משנה</label>
-        <input type="text" id="hero_subtitle">
+    <div id="design-tab" style="display:none">
+        <div class="input-group">
+            <label>צבע מותג</label>
+            <input type="color" id="in-color" oninput="updatePreview()">
+        </div>
+        <div class="input-group">
+            <label>קימור פינות (px)</label>
+            <input type="range" min="0" max="30" id="in-radius" oninput="updatePreview()">
+        </div>
     </div>
 
-    <div class="field">
-        <label>טקסט "אודות"</label>
-        <textarea id="about_text" rows="4"></textarea>
+    <div class="save-bar">
+        <input type="password" id="pass" placeholder="סיסמה לשמירה" style="margin-bottom:10px">
+        <button class="btn-save" onclick="save()">שמור שינויים לאתר</button>
     </div>
+</div>
 
-    <button class="btn" onclick="saveContent()">שמור עדכונים</button>
-    <div id="status" class="status"></div>
+<div class="preview-area">
+    <div style="margin-bottom: 20px; color: #86868b; font-size: 14px;">תצוגה מקדימה (בזמן אמת)</div>
+    <div class="browser-mockup" id="mockup">
+        <div id="p-hero-t" class="p-hero-t">כותרת האתר</div>
+        <div id="p-hero-s" class="p-hero-s">כאן יופיע תיאור העסק שלך</div>
+        <div id="p-btn" class="p-btn">לחץ כאן</div>
+    </div>
 </div>
 
 <script>
-    const API_URL = 'https://YOUR-RENDER-URL.onrender.com'; // תחליף לכתובת ה-Render שלך!
+    let currentData = {};
 
-    // טעינת הנתונים הקיימים כשהדף נפתח
-    async function loadCurrentContent() {
-        try {
-            const res = await fetch(`${API_URL}/get-content`);
-            const data = await res.json();
-            document.getElementById('hero_title').value = data.hero_title || '';
-            document.getElementById('hero_subtitle').value = data.hero_subtitle || '';
-            document.getElementById('about_text').value = data.about_text || '';
-        } catch (e) {
-            console.error("טעינה נכשלה");
-        }
+    function updatePreview() {
+        const title = document.getElementById('in-title').value;
+        const sub = document.getElementById('in-sub').value;
+        const btn = document.getElementById('in-btn').value;
+        const color = document.getElementById('in-color').value;
+        const radius = document.getElementById('in-radius').value;
+
+        document.getElementById('p-hero-t').innerText = title;
+        document.getElementById('p-hero-s').innerText = sub;
+        document.getElementById('p-btn').innerText = btn;
+        
+        document.documentElement.style.setProperty('--p-color', color);
+        document.getElementById('p-btn').style.borderRadius = radius + 'px';
     }
 
-    // שמירת הנתונים החדשים
-    async function saveContent() {
-        const password = document.getElementById('password').value;
-        const statusDiv = document.getElementById('status');
+    async function load() {
+        const res = await fetch('https://YOUR-RENDER-URL.onrender.com/get-content');
+        const data = await res.json();
+        currentData = data;
         
+        document.getElementById('in-title').value = data.hero.title;
+        document.getElementById('in-sub').value = data.hero.subtitle;
+        document.getElementById('in-btn').value = "הצטרפו עכשיו"; // ברירת מחדל
+        document.getElementById('in-color').value = data.config.primaryColor;
+        
+        updatePreview();
+    }
+
+    function showTab(tab) {
+        document.getElementById('content-tab').style.display = tab === 'content' ? 'block' : 'none';
+        document.getElementById('design-tab').style.display = tab === 'design' ? 'block' : 'none';
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    async function save() {
+        const password = document.getElementById('pass').value;
         const newContent = {
-            hero_title: document.getElementById('hero_title').value,
-            hero_subtitle: document.getElementById('hero_subtitle').value,
-            about_text: document.getElementById('about_text').value
+            config: { primaryColor: document.getElementById('in-color').value, borderRadius: document.getElementById('in-radius').value + "px" },
+            hero: { title: document.getElementById('in-title').value, subtitle: document.getElementById('in-sub').value }
         };
 
-        statusDiv.innerText = "שומר...";
-
-        try {
-            const res = await fetch(`${API_URL}/update-content`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password, newContent })
-            });
-
-            const result = await res.json();
-            if (result.status === 'success') {
-                statusDiv.style.color = "green";
-                statusDiv.innerText = "האתר עודכן בהצלחה!";
-            } else {
-                statusDiv.style.color = "red";
-                statusDiv.innerText = "שגיאה: " + result.message;
-            }
-        } catch (e) {
-            statusDiv.style.color = "red";
-            statusDiv.innerText = "תקלה בתקשורת עם השרת";
-        }
+        const res = await fetch('https://YOUR-RENDER-URL.onrender.com/update-content', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ password, newContent })
+        });
+        
+        if(res.ok) alert("האתר עודכן בהצלחה!");
+        else alert("סיסמה שגויה אחי");
     }
 
-    loadCurrentContent();
+    load();
 </script>
-
 </body>
 </html>
