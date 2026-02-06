@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>האתר שלך | 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-light: #F5F5F7;
+            --text-dark: #1D1D1F;
+            --secondary-text: #86868b;
+            --apple-blue: #007AFF;
+            --border: rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background-color: white;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10%;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: fixed;
+            top: 0; width: 80%;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo { font-size: 20px; font-weight: 600; text-decoration: none; color: var(--text-dark); }
+        .nav-links a { text-decoration: none; color: var(--secondary-text); margin-right: 30px; font-size: 14px; transition: 0.3s; }
+        .nav-links a:hover { color: var(--text-dark); }
+
+        /* Hero Section */
+        .hero {
+            padding-top: 120px;
+            text-align: center;
+            background-color: var(--bg-light);
+            padding-bottom: 80px;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 6vw, 64px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            font-size: 24px;
+            color: var(--secondary-text);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-image {
+            width: 85%;
+            max-width: 900px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+        }
+
+        /* Features Section - כאן האייקונים שחזרו */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 80px 10%;
+            background: white;
+        }
+
+        .card {
+            padding: 40px;
+            background: var(--bg-light);
+            border-radius: 24px;
+            text-align: center;
+            transition: 0.3s ease;
+        }
+
+        .card:hover { transform: translateY(-10px); }
+
+        /* העיצוב של האייקונים (התמונות הקטנות) */
+        .card i {
+            font-size: 45px;
+            color: var(--apple-blue);
+            margin-bottom: 25px;
+            display: block;
+        }
+
+        .card h3 { font-size: 22px; margin-bottom: 15px; font-weight: 600; }
+        .card p { color: var(--secondary-text); font-size: 16px; }
+
+        /* Chat Widget */
+        #chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+        
+        #chat-button {
+            width: 64px; height: 64px;
+            background: var(--apple-blue);
+            border: none; border-radius: 50%;
+            color: white; font-size: 26px;
+            cursor: pointer; box-shadow: 0 10px 25px rgba(0,122,255,0.3);
+            transition: 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        #chat-button:hover { transform: scale(1.1); }
+
+        #chat-window {
+            position: fixed; bottom: 110px; right: 30px;
+            width: 380px; height: 580px;
+            background: white; border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            display: none; overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" class="nav-logo">האתר שלך</a>
+        <div class="nav-links">
+            <a href="index.html" style="color: var(--text-dark); font-weight: 600;">דף הבית</a>
+            <a href="products.html">מוצרים</a>
+            <a href="#">קורסים</a>
+            <a href="#">עלינו</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1>הצד החכם של העסק.</h1>
+        <p>חוויית בינה מלאכותית בעיצוב נקי וביצועים ללא פשרות.</p>
+        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200" class="hero-image" alt="Tech">
+    </section>
+
+    <section class="features">
+        <div class="card">
+            <i class="fa-solid fa-brain"></i> <h3>בינה חכמה</h3>
+            <p>מודל AI מתקדם שמבין את הצרכים שלך ועונה בצורה מדויקת.</p>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-lock"></i> <h3>אבטחה מקסימלית</h3>
+            <p>הנתונים שלך מוגנים בטכנולוגיות האבטחה המתקדמות ביותר.</p>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-bolt"></i> <h3>מהירות שיא</h3>
+            <p>תשובות מיידיות וחוויית משתמש חלקה ללא המתנה.</p>
+        </div>
+    </section>
+
+    <div id="chat-widget">
+        <div id="chat-window">
+            <iframe src="bot.html"></iframe>
+        </div>
+        <button id="chat-button" onclick="toggleChat()">
+            <i class="fa-solid fa-comment-dots"></i>
+        </button>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const win = document.getElementById('chat-window');
+            win.style.display = (win.style.display === 'block') ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+const trigger = document.getElementById('widget-trigger');
+const chatWindow = document.getElementById('chat-window');
+const closeBtn = document.getElementById('close-chat');
+const sendBtn = document.getElementById('send-button');
+const userInput = document.getElementById('user-input');
+const messagesContainer = document.getElementById('messages-container');
+
+// פתיחה/סגירה
+trigger.onclick = () => chatWindow.classList.toggle('hidden');
+closeBtn.onclick = () => chatWindow.classList.add('hidden');
+
+async function handleSend() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    appendMessage('user', text);
+    userInput.value = '';
+
+    try {
+        const response = await fetch('http://localhost:4000/send-pilot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        });
+        const data = await response.json();
+        appendMessage('bot', data.info);
+    } catch (err) {
+        appendMessage('bot', "שגיאה בחיבור לשרת.");
+    }
+}
+
+function appendMessage(role, text) {
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    div.innerText = text;
+    messagesContainer.appendChild(div);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+sendBtn.onclick = handleSend;
+userInput.onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
