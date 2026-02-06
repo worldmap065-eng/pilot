@@ -42,18 +42,23 @@ nav {
     box-sizing: border-box;
 }
 
-/* תיקון קריטי למובייל */
+/* שים לב: כאן ה-nav נסגר לפני שמתחיל התיקון למובייל */
+
 @media (max-width: 600px) {
     .nav-links {
-        display: flex;
-        gap: 10px; /* יוצר רווח שווה בין המילים */
+        display: flex !important;
+        gap: 12px !important;
+        margin-right: 0 !important;
     }
+    
     .nav-links a {
-        margin-right: 0 !important; /* מבטל רווחים קודמים שמפריעים */
-        font-size: 13px; /* מקטין מעט את הכתב שייכנס בשורה */
+        margin-right: 0 !important;
+        font-size: 13px !important;
+        white-space: nowrap; /* מונע מהמילים לרדת שורה בתוך עצמן */
     }
+    
     nav {
-        padding: 0 10px; /* מצמצם רווחים בצדדים בטלפון */
+        padding: 0 10px !important;
     }
 }
 
