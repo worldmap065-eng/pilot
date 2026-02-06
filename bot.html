@@ -210,7 +210,7 @@
                 const data = await response.json();
                 
                 // הצגת תשובת הבוט
-                addMessage(data.info, 'ai-message');
+                addMessage(data.reply, 'ai-message');
             } catch (err) {
                 addMessage("מצטער, נראה שיש תקלה בתקשורת עם השרת.", 'ai-message');
             } finally {
