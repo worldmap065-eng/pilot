@@ -42,13 +42,18 @@ nav {
     box-sizing: border-box;
 }
 
+/* תיקון קריטי למובייל */
 @media (max-width: 600px) {
+    .nav-links {
+        display: flex;
+        gap: 10px; /* יוצר רווח שווה בין המילים */
+    }
     .nav-links a {
-        margin-right: 15px;
-        font-size: 13px;
+        margin-right: 0 !important; /* מבטל רווחים קודמים שמפריעים */
+        font-size: 13px; /* מקטין מעט את הכתב שייכנס בשורה */
     }
     nav {
-        padding: 0 15px;
+        padding: 0 10px; /* מצמצם רווחים בצדדים בטלפון */
     }
 }
 
