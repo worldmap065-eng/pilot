@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pilot Studio | Admin</title>
+    <title>Pilot Studio | CMS Admin</title>
     <style>
         :root {
             --bg-color: #000000;
@@ -20,7 +20,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
         }
 
         body {
@@ -32,170 +32,156 @@
             overflow: hidden;
         }
 
-        /* Top Bar */
+        /* --- Top Bar --- */
         header {
-            height: 60px;
-            background: rgba(28, 28, 30, 0.8);
-            backdrop-filter: blur(20px);
+            height: 52px;
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             padding: 0 20px;
-            gap: 20px;
-            z-index: 100;
+            justify-content: space-between;
+            z-index: 1000;
         }
 
-        .logo {
-            font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: -0.5px;
-            margin-left: 40px;
-        }
+        .header-right { display: flex; align-items: center; gap: 30px; }
+        .logo { font-weight: 600; font-size: 16px; letter-spacing: -0.2px; }
 
-        .tabs {
-            display: flex;
-            gap: 8px;
-        }
-
+        .tabs { display: flex; gap: 4px; }
         .tab {
-            padding: 8px 16px;
-            background: var(--border-color);
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
             cursor: pointer;
+            color: var(--text-dim);
             transition: 0.2s;
         }
+        .tab.active { background: #323234; color: #fff; }
+        .tab:hover:not(.active) { background: #2c2c2e; }
 
-        .tab.active {
-            background: var(--accent-color);
-        }
-
-        .tab-add {
-            background: transparent;
-            border: 1px dashed var(--text-dim);
-            color: var(--text-dim);
-        }
-
-        /* Main Layout */
+        /* --- Layout --- */
         main {
             display: flex;
             flex: 1;
-            overflow: hidden;
+            height: calc(100vh - 52px);
         }
 
         /* Sidebar */
         aside {
-            width: 280px;
+            width: 260px;
             background: var(--panel-bg);
             border-left: 1px solid var(--border-color);
-            padding: 20px;
+            padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
-        .sidebar-title {
-            font-size: 0.85rem;
+        .sidebar-label {
+            font-size: 11px;
+            font-weight: 600;
             color: var(--text-dim);
-            text-transform: uppercase;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            padding-right: 4px;
         }
 
         .draggable-item {
             background: #2c2c2e;
-            padding: 15px;
-            border-radius: var(--radius);
+            padding: 12px 16px;
+            border-radius: 10px;
             cursor: grab;
+            font-size: 14px;
             border: 1px solid transparent;
-            transition: 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
         }
 
         .draggable-item:hover {
-            border-color: var(--accent-color);
             background: #3a3a3c;
+            border-color: #48484a;
+            transform: translateY(-1px);
         }
 
-        /* Canvas Area */
-        .canvas-container {
+        .draggable-item:active { cursor: grabbing; }
+
+        /* Canvas Container */
+        .viewport {
             flex: 1;
             background: #111;
+            overflow: auto;
             display: flex;
             justify-content: center;
-            padding: 40px;
-            overflow: auto;
+            padding: 60px 20px;
             position: relative;
         }
 
+        /* The Artboard */
         #artboard {
             width: 1000px;
-            min-height: 800px;
+            min-height: 1200px;
             background: var(--canvas-bg);
             position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            border-radius: 4px;
+            border-radius: 2px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
         }
 
         #artboard iframe {
             width: 100%;
             height: 100%;
             border: none;
-            pointer-events: none; /* מאפשר גרירה מעליו */
             position: absolute;
             top: 0;
             left: 0;
+            pointer-events: none; /* קריטי כדי שנוכל לגרור מעליו */
+            z-index: 1;
         }
 
-        /* Added Elements Style */
+        /* Elements placed on Artboard */
         .dropped-element {
             position: absolute;
+            z-index: 10;
             cursor: move;
-            outline: 2px solid transparent;
-            transition: outline 0.2s;
-            padding: 5px;
-            min-width: 50px;
+            outline: 1px solid transparent;
+            user-select: none;
+            transition: outline 0.1s;
         }
 
-        .dropped-element:hover {
-            outline: 1px solid var(--accent-color);
-        }
+        .dropped-element:hover { outline: 1px solid var(--accent-color); }
+        .dropped-element.selected { outline: 2px solid var(--accent-color); }
 
-        .dropped-element.selected {
-            outline: 2px solid var(--accent-color);
-        }
-
-        /* Floating Toolbar */
+        /* --- Toolbar --- */
         .toolbar {
             position: absolute;
-            top: -45px;
-            left: 0;
-            background: #48484a;
+            background: #2c2c2e;
+            border: 1px solid #48484a;
             border-radius: 8px;
+            padding: 6px;
             display: none;
-            gap: 5px;
-            padding: 5px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            gap: 6px;
+            z-index: 2000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            align-items: center;
         }
 
         .toolbar button {
             background: transparent;
             border: none;
-            color: white;
-            padding: 5px 8px;
+            color: #fff;
+            padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
         }
 
-        .toolbar button:hover {
-            background: var(--accent-color);
-        }
-
+        .toolbar button:hover { background: var(--accent-color); }
+        
         .toolbar input[type="color"] {
-            width: 20px;
-            height: 20px;
+            appearance: none;
+            width: 18px;
+            height: 18px;
             border: none;
+            background: none;
             cursor: pointer;
         }
     </style>
@@ -203,47 +189,51 @@
 <body>
 
     <header>
-        <div class="logo">Pilot Studio</div>
-        <div class="tabs">
-            <div class="tab active">index.html</div>
-            <div class="tab tab-add">+ דף חדש</div>
+        <div class="header-right">
+            <div class="logo">Pilot Studio</div>
+            <nav class="tabs">
+                <div class="tab active">index.html</div>
+                <div class="tab">+ דף חדש</div>
+            </nav>
+        </div>
+        <div class="header-left">
+            <button style="background: var(--accent-color); border:none; color:#fff; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer;">שמירה</button>
         </div>
     </header>
 
     <main>
         <aside>
-            <div class="sidebar-title">אלמנטים להוספה</div>
-            <div class="draggable-item" draggable="true" data-type="h1">כותרת גדולה</div>
-            <div class="draggable-item" draggable="true" data-type="p">פסקה טקסט</div>
-            <div class="draggable-item" draggable="true" data-type="button">כפתור פעולה</div>
+            <div class="sidebar-label">ספריית אלמנטים</div>
+            <div class="draggable-item" draggable="true" data-type="h1">כותרת ראשית</div>
+            <div class="draggable-item" draggable="true" data-type="p">פסקה חדשה</div>
+            <div class="draggable-item" draggable="true" data-type="button">כפתור קריאה לפעולה</div>
         </aside>
 
-        <section class="canvas-container">
+        <section class="viewport">
             <div id="artboard">
-                <iframe src="index.html"></iframe>
-                
-                </div>
+                <iframe src="index.html" id="page-frame"></iframe>
+            </div>
         </section>
     </main>
 
     <div id="floating-toolbar" class="toolbar">
-        <input type="color" id="colorPicker" title="שינוי צבע">
+        <input type="color" id="colorPicker" title="צבע טקסט">
         <button onclick="deleteElement()">מחק</button>
-        <button onclick="makeLink()">קישור</button>
+        <button onclick="toggleBold()"><b>B</b></button>
     </div>
 
     <script>
         const artboard = document.getElementById('artboard');
         const toolbar = document.getElementById('floating-toolbar');
         let selectedElement = null;
-        let isDragging = false;
+        let isMoving = false;
         let offset = { x: 0, y: 0 };
 
-        // 1. Drag & Drop Logic (Sidebar to Artboard)
+        // 1. Drag & Drop מהסרגל הצדי
         document.querySelectorAll('.draggable-item').forEach(item => {
             item.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('type', e.target.getAttribute('data-type'));
-                e.dataTransfer.setData('content', e.target.innerText);
+                e.dataTransfer.setData('type', e.target.dataset.type);
+                e.dataTransfer.setData('text', e.target.innerText);
             });
         });
 
@@ -252,95 +242,97 @@
         artboard.addEventListener('drop', (e) => {
             e.preventDefault();
             const type = e.dataTransfer.getData('type');
-            const content = e.dataTransfer.getData('content');
+            const text = e.dataTransfer.getData('text');
             
             if (type) {
                 const rect = artboard.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                
-                createNewElement(type, content, x, y);
+                createElement(type, text, x, y);
             }
         });
 
-        // 2. Create New Element
-        function createNewElement(type, content, x, y) {
+        // 2. יצירת אלמנט חדש
+        function createElement(type, text, x, y) {
             const el = document.createElement(type === 'button' ? 'button' : type);
             el.className = 'dropped-element';
-            el.innerText = content;
+            el.innerText = text;
             el.style.left = x + 'px';
             el.style.top = y + 'px';
-            el.style.color = '#000000'; // ברירת מחדל לארטבורד לבן
-            
+            el.style.color = '#1c1c1e';
+
             if (type === 'button') {
-                el.style.padding = '10px 20px';
-                el.style.background = '#0a84ff';
-                el.style.color = '#fff';
-                el.style.border = 'none';
-                el.style.borderRadius = '6px';
+                Object.assign(el.style, {
+                    padding: '12px 24px',
+                    backgroundColor: '#0a84ff',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '500'
+                });
             }
 
-            // Events for the new element
-            el.addEventListener('mousedown', startMoving);
-            el.addEventListener('click', selectElement);
-            el.addEventListener('dblclick', (e) => {
+            // אירועים לאלמנט
+            el.addEventListener('mousedown', initMove);
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                select(el);
+            });
+            el.addEventListener('dblclick', () => {
                 el.contentEditable = true;
                 el.focus();
             });
             el.addEventListener('blur', () => el.contentEditable = false);
 
             artboard.appendChild(el);
+            select(el);
         }
 
-        // 3. Selection & Toolbar
-        function selectElement(e) {
-            e.stopPropagation();
+        // 3. בחירה וטולבר
+        function select(el) {
             if (selectedElement) selectedElement.classList.remove('selected');
-            
-            selectedElement = e.target;
+            selectedElement = el;
             selectedElement.classList.add('selected');
             
-            // Show Toolbar
             toolbar.style.display = 'flex';
-            toolbar.style.top = (parseInt(selectedElement.style.top) - 45) + 'px';
+            updateToolbarPos();
+        }
+
+        function updateToolbarPos() {
+            if (!selectedElement) return;
+            toolbar.style.top = (parseInt(selectedElement.style.top) - 50) + 'px';
             toolbar.style.left = selectedElement.style.left;
         }
 
-        // 4. Move Existing Elements
-        function startMoving(e) {
+        // 4. הזזה חופשית במשטח
+        function initMove(e) {
             if (e.target.contentEditable === "true") return;
-            
-            isDragging = true;
+            isMoving = true;
             selectedElement = e.target;
+            
             const rect = selectedElement.getBoundingClientRect();
             offset.x = e.clientX - rect.left;
             offset.y = e.clientY - rect.top;
-            
-            document.addEventListener('mousemove', moveElement);
-            document.addEventListener('mouseup', stopMoving);
+
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', () => {
+                isMoving = false;
+                document.removeEventListener('mousemove', handleMove);
+            });
         }
 
-        function moveElement(e) {
-            if (!isDragging || !selectedElement) return;
-            
+        function handleMove(e) {
+            if (!isMoving || !selectedElement) return;
             const rect = artboard.getBoundingClientRect();
             let x = e.clientX - rect.left - offset.x;
             let y = e.clientY - rect.top - offset.y;
             
             selectedElement.style.left = x + 'px';
             selectedElement.style.top = y + 'px';
-            
-            // Update toolbar position
-            toolbar.style.top = (y - 45) + 'px';
-            toolbar.style.left = x + 'px';
+            updateToolbarPos();
         }
 
-        function stopMoving() {
-            isDragging = false;
-            document.removeEventListener('mousemove', moveElement);
-        }
-
-        // 5. Toolbar Functions
+        // 5. פונקציות טולבר
         document.getElementById('colorPicker').addEventListener('input', (e) => {
             if (selectedElement) {
                 if (selectedElement.tagName === 'BUTTON') {
@@ -359,20 +351,16 @@
             }
         }
 
-        function makeLink() {
+        function toggleBold() {
             if (selectedElement) {
-                const url = prompt("הכנס כתובת URL:");
-                if (url) {
-                    console.log("Link set to:", url);
-                    selectedElement.setAttribute('data-link', url);
-                    alert("הקישור נשמר בהצלחה.");
-                }
+                selectedElement.style.fontWeight = 
+                    selectedElement.style.fontWeight === 'bold' ? 'normal' : 'bold';
             }
         }
 
-        // Deselect when clicking canvas
+        // ביטול בחירה בלחיצה על המשטח
         artboard.addEventListener('click', (e) => {
-            if (e.target === artboard) {
+            if (e.target === artboard || e.target.id === 'page-frame') {
                 if (selectedElement) selectedElement.classList.remove('selected');
                 selectedElement = null;
                 toolbar.style.display = 'none';
