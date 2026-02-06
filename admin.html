@@ -2,203 +2,157 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot OS | Professional Control Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Pilot Studio | Visual Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --apple-blue: #0071e3; --glass: rgba(255, 255, 255, 0.8); }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', -apple-system, sans-serif; }
+        :root { --accent: #0071e3; --sidebar-w: 320px; --topbar-h: 60px; }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
+        body { margin: 0; background: #111; color: white; overflow: hidden; height: 100vh; }
+
+        /* Top Bar */
+        .top-bar { 
+            height: var(--topbar-h); background: #1d1d1f; border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
+        }
+
+        /* Layout */
+        .main-layout { display: flex; height: calc(100vh - var(--topbar-h)); }
+
+        /* Sidebars */
+        .sidebar { 
+            width: var(--sidebar-w); background: #1d1d1f; border-left: 1px solid #333; 
+            padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+        }
+
+        /* The Canvas (The real site) */
+        .canvas-area { 
+            flex: 1; background: #111; display: flex; justify-content: center; align-items: center; 
+            padding: 20px; position: relative;
+        }
         
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-
-        /* מסך כניסה קולנועי */
-        #login-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
-            transition: all 1s cubic-bezier(0.85, 0, 0.15, 1);
+        .browser-container {
+            width: 100%; height: 100%; max-width: 1200px; background: white;
+            border-radius: 12px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            position: relative; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .login-content {
-            text-align: center; width: 100%; max-width: 400px; padding: 20px;
-            animation: welcomeScale 1.2s ease-out;
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Widget Box */
+        .widget {
+            background: #2c2c2e; padding: 15px; border-radius: 10px; cursor: grab;
+            border: 1px solid #3a3a3c; transition: 0.2s; font-size: 14px;
         }
+        .widget:hover { background: #3a3a3c; border-color: var(--accent); }
 
-        @keyframes welcomeScale {
-            from { opacity: 0; transform: scale(0.9); filter: blur(10px); }
-            to { opacity: 1; transform: scale(1); filter: blur(0); }
-        }
+        /* Device Switcher */
+        .device-btn { background: #333; border: none; color: white; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
+        .device-btn.active { background: var(--accent); }
 
-        .logo-glow {
-            width: 80px; height: 80px; background: white; border-radius: 20px;
-            margin: 0 auto 30px; box-shadow: 0 0 40px rgba(255,255,255,0.3);
-            display: flex; justify-content: center; align-items: center; font-weight: 700; color: black; font-size: 24px;
-        }
-
-        .login-card h1 { 
-            font-size: 32px; font-weight: 700; color: white; margin-bottom: 8px; 
-            letter-spacing: -1px;
-        }
-
-        .login-card p { color: #86868b; margin-bottom: 30px; font-size: 17px; }
-
-        .input-wrapper { position: relative; width: 100%; }
-
-        .login-input { 
-            width: 100%; padding: 22px; background: rgba(255,255,255,0.05); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; 
-            color: white; font-size: 18px; text-align: center; outline: none;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-        }
-
-        .login-input:focus { 
-            background: rgba(255,255,255,0.1); border-color: var(--apple-blue);
-            box-shadow: 0 0 30px rgba(0, 113, 227, 0.2); transform: scale(1.02);
-        }
-
-        .hint { margin-top: 15px; color: #424245; font-size: 12px; transition: 0.3s; }
-
-        /* סגנון למעבר - היעלמות */
-        .unlocked { opacity: 0; transform: scale(1.1) translateY(-50px); filter: blur(20px); pointer-events: none; }
-
-        /* סביבת העבודה */
-        #workspace { 
-            display: none; height: 100vh; grid-template-columns: 380px 1fr; 
-            background: #f5f5f7; color: #1d1d1f; opacity: 0; transition: 1s ease;
-        }
-
-        /* שאר ה-CSS (עיצוב המערכת עצמה) נשאר דומה למה שבנינו מקודם, נקי ויוקרתי */
-        .inspector { background: var(--glass); backdrop-filter: blur(30px); border-left: 1px solid rgba(0,0,0,0.1); padding: 30px; display: flex; flex-direction: column; gap: 20px; }
-        .viewport { background: #e5e5e7; display: flex; justify-content: center; align-items: center; padding: 40px; overflow-y: auto; }
-        .device-frame { width: 100%; max-width: 900px; min-height: 1000px; background: white; border-radius: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.1); padding: 60px; }
-        .control-group { background: white; padding: 18px; border-radius: 16px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); }
-        .publish-btn { position: fixed; top: 30px; left: 30px; padding: 14px 28px; background: #000; color: white; border-radius: 25px; font-weight: 600; cursor: pointer; border: none; z-index: 100; }
+        /* Action Buttons */
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="login-overlay">
-    <div class="login-content">
-        <div class="logo-glow">P</div>
-        <div class="login-card">
-            <h1>Pilot Studio</h1>
-            <p>הכנס סיסמת מנהל כדי להתחיל</p>
-            <div class="input-wrapper">
-                <input type="password" id="pass-field" class="login-input" placeholder="••••••••" autofocus>
-            </div>
-            <div class="hint" id="hint-text">הקש Enter לכניסה</div>
+<div class="top-bar">
+    <div style="font-weight: 700; font-size: 18px;">PILOT STUDIO <span style="font-weight: 300; opacity: 0.5;">VISUAL</span></div>
+    <div class="device-switcher">
+        <button class="device-btn active" onclick="resizePreview('100%')">Desktop</button>
+        <button class="device-btn" onclick="resizePreview('768px')">Tablet</button>
+        <button class="device-btn" onclick="resizePreview('390px')">Mobile</button>
+    </div>
+    <button class="btn-primary" onclick="saveAll()">Publish Live</button>
+</div>
+
+<div class="main-layout">
+    <div class="sidebar">
+        <h3 style="font-size: 14px; color: #86868b;">TOOLS</h3>
+        <div class="widget" draggable="true" ondragstart="drag(event, 'button')">➕ Add Button</div>
+        <div class="widget" draggable="true" ondragstart="drag(event, 'table')">📊 Add Table</div>
+        <div class="widget" draggable="true" ondragstart="drag(event, 'text')">📝 Add Text Block</div>
+        
+        <hr style="border: 0; border-top: 1px solid #333; width: 100%;">
+        
+        <h3 style="font-size: 14px; color: #86868b;">PAGES</h3>
+        <div id="page-list">
+            <div class="widget" style="background: var(--accent);">Home (index.html)</div>
+        </div>
+        <button onclick="addPage()" style="background: none; border: 1px dashed #555; color: #86868b; padding: 10px; border-radius: 10px; cursor: pointer;">+ New Page</button>
+    </div>
+
+    <div class="canvas-area">
+        <div class="browser-container" id="preview-frame">
+            <iframe src="index.html" id="site-iframe"></iframe>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h3 style="font-size: 14px; color: #86868b;">PROPERTIES</h3>
+        <div id="properties-panel">
+            <p style="font-size: 12px; color: #555;">Select an element on the site to edit properties.</p>
         </div>
     </div>
 </div>
-
-<div id="workspace">
-    <div class="inspector">
-        <h2 style="font-size: 22px;">עריכת אתר בלייב</h2>
-        <div class="control-group">
-            <label style="font-size: 11px; font-weight: 700; color: #86868b; display: block; margin-bottom: 8px;">כותרת ראשית</label>
-            <input type="text" id="in-title" style="width: 100%; border: none; font-size: 16px; outline: none;" oninput="sync()">
-        </div>
-        <div class="control-group">
-            <label style="font-size: 11px; font-weight: 700; color: #86868b; display: block; margin-bottom: 8px;">תיאור</label>
-            <textarea id="in-sub" style="width: 100%; border: none; font-size: 15px; outline: none; resize: none;" rows="4" oninput="sync()"></textarea>
-        </div>
-        <div class="control-group">
-            <label style="font-size: 11px; font-weight: 700; color: #86868b; display: block; margin-bottom: 8px;">צבע מותג</label>
-            <input type="color" id="in-color" oninput="sync()" style="width: 100%; height: 40px; border: none; background: none; cursor: pointer;">
-        </div>
-    </div>
-
-    <div class="viewport">
-        <div class="device-frame">
-            <nav style="display: flex; justify-content: space-between; margin-bottom: 80px;">
-                <span style="font-weight: 700; font-size: 20px;">PILOT.</span>
-                <div style="display: flex; gap: 20px; font-size: 14px; color: #86868b;"><span>בית</span><span>אודות</span></div>
-            </nav>
-            <h1 id="p-title" style="font-size: 64px; font-weight: 700; margin-bottom: 20px;"></h1>
-            <p id="p-sub" style="font-size: 24px; color: #86868b; line-height: 1.4;"></p>
-            <div id="p-btn" style="display: inline-block; padding: 18px 40px; background: var(--apple-blue); color: white; border-radius: 35px; margin-top: 40px; font-weight: 600;">הצטרפו עכשיו</div>
-        </div>
-    </div>
-</div>
-
-<button class="publish-btn" onclick="publish()">Publish Changes</button>
 
 <script>
-    const API = "https://YOUR-RENDER-URL.onrender.com"; // לעדכן לכתובת שלך!
-    let masterPass = "";
-
-    // לוגיקת כניסה עם Enter
-    const passField = document.getElementById('pass-field');
-    passField.addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') {
-            const val = e.target.value;
-            if(val === "admin123") {
-                masterPass = val;
-                unlockSystem();
-            } else {
-                // אפקט שגיאה - רעידה
-                passField.style.animation = "shake 0.4s";
-                passField.style.borderColor = "#ff3b30";
-                setTimeout(() => { passField.style.animation = ""; passField.style.borderColor = "rgba(255,255,255,0.1)"; }, 400);
-            }
+    function resizePreview(width) {
+        const frame = document.getElementById('preview-frame');
+        frame.style.width = width;
+        if(width !== '100%') {
+            frame.style.maxWidth = width;
+        } else {
+            frame.style.maxWidth = '1200px';
         }
-    });
+    }
 
-    function unlockSystem() {
-        const overlay = document.getElementById('login-overlay');
-        const workspace = document.getElementById('workspace');
+    function drag(ev, type) {
+        ev.dataTransfer.setData("type", type);
+    }
+
+    // פונקציה להוספת דפים
+    function addPage() {
+        const name = prompt("Enter page name (e.g., about):");
+        if(name) {
+            const list = document.getElementById('page-list');
+            const div = document.createElement('div');
+            div.className = "widget";
+            div.innerText = name + ".html";
+            list.appendChild(div);
+        }
+    }
+
+    // מנגנון הזרקת קוד לעריכה בתוך ה-iframe
+    const iframe = document.getElementById('site-iframe');
+    iframe.onload = function() {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
         
-        overlay.classList.add('unlocked');
-        setTimeout(() => {
-            overlay.style.display = 'none';
-            workspace.style.display = 'grid';
-            setTimeout(() => { workspace.style.opacity = '1'; }, 50);
-            load();
-        }, 800);
-    }
-
-    function sync() {
-        const title = document.getElementById('in-title').value;
-        const sub = document.getElementById('in-sub').value;
-        const color = document.getElementById('in-color').value;
-
-        document.getElementById('p-title').innerText = title;
-        document.getElementById('p-sub').innerText = sub;
-        document.getElementById('p-btn').style.background = color;
-        document.documentElement.style.setProperty('--apple-blue', color);
-    }
-
-    async function load() {
-        const res = await fetch(`${API}/get-content`);
-        const data = await res.json();
-        document.getElementById('in-title').value = data.hero.title;
-        document.getElementById('in-sub').value = data.hero.subtitle;
-        document.getElementById('in-color').value = data.config.primaryColor;
-        sync();
-    }
-
-    async function publish() {
-        const newContent = {
-            config: { primaryColor: document.getElementById('in-color').value },
-            hero: { title: document.getElementById('in-title').value, subtitle: document.getElementById('in-sub').value }
-        };
-
-        const res = await fetch(`${API}/update-content`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ password: masterPass, newContent })
+        // הפיכת כל הטקסטים באתר לעריכים בלחיצה
+        doc.querySelectorAll('h1, p, span').forEach(el => {
+            el.contentEditable = true;
+            el.addEventListener('input', () => {
+                console.log("Text changed:", el.innerText);
+            });
         });
-        
-        if(res.ok) alert("✅ האתר עודכן בהצלחה!");
+
+        // אפשרות להזיז אלמנטים (Drag & Drop פנימי)
+        doc.addEventListener('dragover', (e) => e.preventDefault());
+        doc.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData("type");
+            if(type === 'button') {
+                const btn = doc.createElement('button');
+                btn.innerText = "New Button";
+                btn.className = "main-btn"; // משתמש בקלאס הקיים באתר
+                e.target.appendChild(btn);
+            }
+        });
+    };
+
+    async function saveAll() {
+        alert("Saving structure to server...");
+        // כאן תבוא לוגיקת ה-POST לשרת ששומרת את ה-HTML המעודכן מה-iframe
     }
 </script>
-
-<style>
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-    }
-</style>
-
 </body>
 </html>
