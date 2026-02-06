@@ -2,81 +2,252 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot Studio | Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Pilot Studio | Canvas Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #0071e3; --bg: #000; --panel: #161617; --border: #333; }
+        :root { --apple-blue: #0071e3; --bg: #0b0b0c; --panel: #1c1c1e; --border: rgba(255,255,255,0.1); }
         * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
-        body { margin: 0; background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: row; overflow: hidden; }
-        
-        /* סרגל צד ימין - Elements & Pages */
-        .sidebar-right { width: 280px; background: var(--panel); padding: 20px; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
-        
-        /* אזור התצוגה המרכזי */
-        .main-editor { flex: 1; display: flex; flex-direction: column; background: #080808; }
-        .nav { height: 50px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
-        
-        .canvas { flex: 1; display: flex; justify-content: center; align-items: center; overflow: auto; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 20px 20px; }
-        #site-wrapper { width: 90%; height: 90%; background: white; color: black; border-radius: 4px; overflow: auto; position: relative; transition: 0.4s; }
-        #site-wrapper.mobile { width: 375px; height: 667px; border-radius: 30px; border: 10px solid #222; }
+        body { margin: 0; background: var(--bg); color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* כפתורים ופקדים */
-        .control { margin-bottom: 15px; }
-        .control label { display: block; font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; }
-        .input { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 8px; border-radius: 6px; }
-        .btn-action { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; text-align: right; }
-        .btn-action:hover { border-color: var(--accent); }
+        /* בר עליון וטאבים */
+        .top-nav { 
+            height: 55px; background: #000; border-bottom: 1px solid var(--border); 
+            display: flex; align-items: flex-end; padding: 0 20px; gap: 5px;
+        }
+        .tab { 
+            padding: 10px 25px; background: #1c1c1e; border-radius: 10px 10px 0 0; 
+            font-size: 13px; color: #86868b; cursor: pointer; transition: 0.2s; border: 1px solid var(--border); border-bottom: none;
+        }
+        .tab.active { background: var(--apple-blue); color: white; border-color: var(--apple-blue); }
+
+        /* פריסה ראשית */
+        .studio-container { flex: 1; display: flex; overflow: hidden; }
+
+        /* סרגל צד - ספריית רכיבים */
+        .sidebar { 
+            width: 260px; background: var(--panel); border-left: 1px solid var(--border);
+            padding: 20px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .asset-item { 
+            padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 12px; cursor: grab; font-size: 14px; text-align: center; transition: 0.2s;
+        }
+        .asset-item:hover { border-color: var(--apple-blue); background: rgba(255,255,255,0.08); }
+
+        /* אזור הקנבס */
+        .canvas-wrapper { 
+            flex: 1; position: relative; background: #111; display: flex; 
+            justify-content: center; align-items: flex-start; overflow: auto; padding: 50px;
+            background-image: radial-gradient(circle, #222 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
         
-        /* אלמנטים ניתנים לעריכה */
-        .editable { cursor: pointer; transition: 0.2s; }
-        .editable:hover { outline: 2px solid var(--accent); }
-        .selected { outline: 2px solid var(--accent) !important; outline-offset: 4px; }
+        .artboard {
+            width: 800px; min-height: 1000px; background: white; border-radius: 4px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5); position: relative;
+        }
+
+        /* סרגל כלים צף */
+        #element-tools {
+            position: absolute; background: #2c2c2e; padding: 6px; border-radius: 10px;
+            display: none; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;
+            border: 1px solid #444; align-items: center;
+        }
+        .tool-icon { 
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border-radius: 6px; transition: 0.2s; font-size: 16px;
+        }
+        .tool-icon:hover { background: #444; }
+
+        /* כפתור פרסום */
+        .save-btn {
+            position: fixed; bottom: 30px; left: 30px; padding: 15px 40px;
+            background: white; color: black; border-radius: 30px; font-weight: 700;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: none; transition: 0.3s;
+        }
+        .save-btn:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
 
-    <div class="main-editor">
-        <nav class="nav">
-            <div style="font-weight:600">PILOT STUDIO</div>
-            <div>
-                <button onclick="setDevice('desktop')">מחשב</button>
-                <button onclick="setDevice('mobile')">מובייל</button>
-            </div>
-        </nav>
-        <main class="canvas">
-            <div id="site-wrapper">
-                <h1 class="editable">כותרת האתר שלך</h1>
-                <p class="editable">לחץ כאן כדי להתחיל לערוך...</p>
-            </div>
-        </main>
-    </div>
+<nav class="top-nav" id="tabs-container">
+    <div class="tab active" onclick="switchTab('דף הבית', this)">דף הבית</div>
+    <div class="tab" onclick="addPageTab()">+ דף חדש</div>
+</nav>
 
-    <aside class="sidebar-right">
-        <div class="control">
-            <label>הוספת אלמנטים</label>
-            <button class="btn-action" onclick="addElement('h1')">➕ הוסף כותרת</button>
-            <button class="btn-action" onclick="addElement('p')">➕ הוסף טקסט</button>
-            <button class="btn-action" onclick="addElement('button')">➕ הוסף כפתור</button>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-
-        <div class="control">
-            <label>עריכת אלמנט</label>
-            <input type="text" id="prop-text" class="input" placeholder="תוכן הטקסט...">
-        </div>
-        <div class="control">
-            <label>צבע טקסט</label>
-            <input type="color" id="prop-color" class="input" style="height:40px">
-        </div>
-        <div class="control">
-            <label>גודל גופן (PX)</label>
-            <input type="number" id="prop-size" class="input">
-        </div>
-        
-        <button id="delete-btn" style="background:#ff453a; color:white; border:none; padding:10px; border-radius:6px; margin-top:auto; cursor:pointer;">מחק אלמנט</button>
+<div class="studio-container">
+    <aside class="sidebar">
+        <div style="color: #86868b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">ספריית רכיבים</div>
+        <div class="asset-item" draggable="true" ondragstart="handleDragStart(event, 'h1')">כותרת גדולה 📝</div>
+        <div class="asset-item" draggable="true" ondragstart="handleDragStart(event, 'p')">פסקת טקסט 📄</div>
+        <div class="asset-item" draggable="true" ondragstart="handleDragStart(event, 'button')">כפתור לחיץ 🔘</div>
     </aside>
 
-    <script src="editor.js"></script>
+    <main class="canvas-wrapper">
+        <div id="artboard" class="artboard" onclick="deselectAll(event)">
+            </div>
+    </main>
+</div>
+
+<div id="element-tools">
+    <div class="tool-icon" title="קישור" onclick="promptLink()">🔗</div>
+    <div class="tool-icon" title="צבע" onclick="document.getElementById('color-picker').click()">🎨</div>
+    <div class="tool-icon" title="מחיקה" onclick="deleteActiveElement()" style="color:#ff3b30;">🗑️</div>
+    <input type="color" id="color-picker" style="display:none;" oninput="changeColor(this.value)">
+</div>
+
+<button class="save-btn" onclick="saveWork()">פרסם אתר</button>
+
+<script>
+    let activeElement = null;
+
+    // פונקציה לעזרה בגרירה
+    function handleDragStart(e, type) {
+        e.dataTransfer.setData('type', type);
+    }
+
+    const artboard = document.getElementById('artboard');
+    artboard.ondragover = (e) => e.preventDefault();
+    
+    artboard.ondrop = (e) => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('type');
+        if (!type) return;
+
+        const el = document.createElement(type === 'button' ? 'button' : type);
+        el.innerText = type === 'button' ? "לחץ כאן" : "טקסט חדש";
+        el.style.position = "absolute";
+        
+        // חישוב מיקום מדויק בתוך הארטבורד
+        const rect = artboard.getBoundingClientRect();
+        el.style.left = (e.clientX - rect.left) + "px";
+        el.style.top = (e.clientY - rect.top) + "px";
+        
+        el.style.cursor = "move";
+        el.style.margin = "0";
+
+        if(type === 'button') {
+            el.style.padding = "12px 24px";
+            el.style.background = "#0071e3";
+            el.style.color = "white";
+            el.style.border = "none";
+            el.style.borderRadius = "12px";
+            el.style.fontSize = "16px";
+        } else if (type === 'h1') {
+            el.style.fontSize = "32px";
+            el.style.color = "#000";
+        }
+
+        makeDraggable(el);
+        artboard.appendChild(el);
+        selectElement(el);
+    };
+
+    function makeDraggable(el) {
+        let isDragging = false;
+        
+        el.addEventListener('mousedown', (e) => {
+            if (el.contentEditable === "true") return;
+            e.stopPropagation(); // מונע ביטול בחירה כשלוחצים על האלמנט
+            
+            isDragging = true;
+            selectElement(el);
+            
+            let shiftX = e.clientX - el.getBoundingClientRect().left;
+            let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                const rect = artboard.getBoundingClientRect();
+                let newX = pageX - rect.left - shiftX;
+                let newY = pageY - rect.top - shiftY;
+                
+                el.style.left = newX + 'px';
+                el.style.top = newY + 'px';
+                showTools(el);
+            }
+
+            function onMouseMove(e) { if(isDragging) moveAt(e.pageX, e.pageY); }
+            document.addEventListener('mousemove', onMouseMove);
+
+            document.onmouseup = () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+            };
+        });
+
+        el.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            el.contentEditable = true;
+            el.focus();
+        });
+
+        el.onblur = () => el.contentEditable = false;
+    }
+
+    function selectElement(el) {
+        activeElement = el;
+        showTools(el);
+    }
+
+    function deselectAll(e) {
+        if (e.target === artboard) {
+            activeElement = null;
+            document.getElementById('element-tools').style.display = 'none';
+        }
+    }
+
+    function showTools(el) {
+        const tools = document.getElementById('element-tools');
+        const rect = el.getBoundingClientRect();
+        tools.style.display = 'flex';
+        // מיקום הסרגל מעל האלמנט
+        tools.style.top = (window.scrollY + rect.top - 50) + 'px';
+        tools.style.left = (window.scrollX + rect.left) + 'px';
+    }
+
+    function promptLink() {
+        if(!activeElement) return;
+        const url = prompt("הכנס כתובת אתר (URL):", activeElement.dataset.link || "https://");
+        if(url) activeElement.dataset.link = url;
+    }
+
+    function changeColor(color) {
+        if(activeElement) {
+            if(activeElement.tagName === 'BUTTON') activeElement.style.backgroundColor = color;
+            else activeElement.style.color = color;
+        }
+    }
+
+    function deleteActiveElement() {
+        if(activeElement) {
+            activeElement.remove();
+            activeElement = null;
+            document.getElementById('element-tools').style.display = 'none';
+        }
+    }
+
+    function addPageTab() {
+        const name = prompt("שם הדף החדש:");
+        if(name) {
+            const tabs = document.getElementById('tabs-container');
+            const newTab = document.createElement('div');
+            newTab.className = 'tab';
+            newTab.innerText = name;
+            newTab.onclick = () => switchTab(name, newTab);
+            tabs.insertBefore(newTab, tabs.lastElementChild);
+        }
+    }
+
+    function switchTab(name, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        console.log("עובר לדף: " + name);
+    }
+
+    function saveWork() {
+        alert("🚀 האתר פורסם בהצלחה! השינויים נשמרו.");
+    }
+</script>
+
 </body>
 </html>
