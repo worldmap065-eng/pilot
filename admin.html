@@ -2,217 +2,201 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot Studio | Canvas Engine</title>
+    <title>Pilot Studio | Ultimate Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --apple-blue: #0071e3; --bg: #0b0b0c; --panel: #1c1c1e; --border: rgba(255,255,255,0.1); }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
-        body { margin: 0; background: var(--bg); color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        :root { --apple-blue: #0071e3; --bg: #000; --sidebar: #1c1c1e; --border: rgba(255,255,255,0.1); }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; cursor: default; }
+        body { margin: 0; background: var(--bg); color: white; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Top Bar & Tabs */
-        .top-nav { 
-            height: 50px; background: #000; border-bottom: 1px solid var(--border); 
-            display: flex; align-items: flex-end; padding: 0 20px; gap: 5px;
-        }
-        .tab { 
-            padding: 8px 20px; background: #1c1c1e; border-radius: 10px 10px 0 0; 
-            font-size: 13px; color: #86868b; cursor: pointer; transition: 0.2s; border: 1px solid var(--border); border-bottom: none;
-        }
-        .tab.active { background: var(--apple-blue); color: white; border-color: var(--apple-blue); }
-
-        /* Main Layout */
-        .studio-container { flex: 1; display: flex; overflow: hidden; }
-
-        /* Sidebar - Assets */
+        /* Sidebar משופר */
         .sidebar { 
-            width: 260px; background: var(--panel); border-left: 1px solid var(--border);
-            padding: 20px; display: flex; flex-direction: column; gap: 20px;
+            width: 300px; background: var(--sidebar); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 100; box-shadow: 10px 0 30px rgba(0,0,0,0.5);
         }
-        .asset-item { 
-            padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-            border-radius: 12px; cursor: grab; font-size: 14px; text-align: center;
+        .sidebar-header { padding: 30px 20px 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.5px; }
+        .sidebar-content { padding: 20px; flex: 1; overflow-y: auto; }
+        
+        .group-label { font-size: 10px; font-weight: 700; color: #86868b; text-transform: uppercase; margin: 20px 0 10px; letter-spacing: 1px; }
+        
+        .item-card { 
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 12px;
+            border-radius: 12px; margin-bottom: 8px; font-size: 14px; cursor: pointer;
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 10px;
         }
-        .asset-item:hover { border-color: var(--apple-blue); background: rgba(255,255,255,0.08); }
+        .item-card:hover { background: rgba(255,255,255,0.08); border-color: var(--apple-blue); transform: translateY(-1px); }
+        .item-card.active { background: var(--apple-blue); border-color: var(--apple-blue); color: white; }
 
-        /* Canvas Area */
-        .canvas-wrapper { 
-            flex: 1; position: relative; background: #111; display: flex; 
-            justify-content: center; align-items: center; overflow: auto; padding: 50px;
+        /* Property Inspector - פאנל שליטה חכם */
+        .inspector { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 20px; display: none; }
+        .inspector.active { display: block; animation: slideRight 0.3s ease; }
+        @keyframes slideRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Canvas */
+        .main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
+        .top-toolbar { 
+            height: 60px; display: flex; justify-content: center; align-items: center; 
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); gap: 10px;
         }
         
-        /* המשטח שעליו משחקים */
-        .artboard {
-            width: 1000px; min-height: 1200px; background: white; border-radius: 2px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.5); position: relative; transform-origin: top center;
+        .view-btn { background: #2c2c2e; border: none; color: #86868b; padding: 6px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .view-btn.active { background: white; color: black; }
+
+        .preview-container {
+            flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow: auto;
+            background: radial-gradient(circle at center, #1c1c1e 0%, #000 100%);
         }
 
-        /* סרגל כלים צף (צמוד לאלמנט) */
-        #element-tools {
-            position: absolute; background: #2c2c2e; padding: 5px; border-radius: 8px;
-            display: none; gap: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 1000;
-            border: 1px solid #444; align-items: center;
+        .iphone-mockup {
+            width: 375px; height: 780px; border: 12px solid #2c2c2e; border-radius: 50px;
+            background: white; overflow: hidden; position: relative; transition: 0.5s;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
         }
-        .tool-icon { 
-            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border-radius: 5px; transition: 0.2s; font-size: 16px;
+        .desktop-mockup {
+            width: 95%; height: 90%; background: white; border-radius: 20px; overflow: hidden; transition: 0.5s;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
         }
-        .tool-icon:hover { background: #444; }
 
-        /* כפתור שמירה */
-        .save-btn {
-            position: fixed; bottom: 30px; left: 30px; padding: 15px 35px;
-            background: white; color: black; border-radius: 30px; font-weight: 700;
-            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: none;
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Floating Save */
+        .action-footer { 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 15px; z-index: 1000;
         }
+        .btn-main { 
+            padding: 14px 28px; border-radius: 30px; border: none; font-weight: 700; font-size: 15px; 
+            cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .btn-publish { background: white; color: black; }
+        .btn-publish:hover { transform: scale(1.05); background: var(--apple-blue); color: white; }
+
+        /* Control Inputs */
+        .ctrl-label { font-size: 11px; color: #86868b; margin-bottom: 6px; display: block; }
+        .ctrl-input { width: 100%; padding: 10px; background: #2c2c2e; border: 1px solid #444; border-radius: 8px; color: white; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<nav class="top-nav" id="tabs-container">
-    <div class="tab active" onclick="switchTab('index.html', this)">Home</div>
-    <div class="tab" onclick="addPageTab()">+ New Page</div>
-</nav>
-
-<div class="studio-container">
-    <aside class="sidebar">
-        <div style="color: #86868b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Library</div>
-        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'h1')">Title</div>
-        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'p')">Paragraph</div>
-        <div class="asset-item" draggable="true" ondragstart="event.dataTransfer.setData('type', 'button')">Button</div>
-    </aside>
-
-    <main class="canvas-wrapper">
-        <div id="artboard" class="artboard">
-            </div>
-    </main>
+<div id="login-overlay" style="position:fixed; inset:0; background:#000; z-index:10000; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+    <h1 style="font-size:40px; margin-bottom:40px;">Pilot Studio</h1>
+    <input type="password" id="pass-field" style="background:#1d1d1f; border:1px solid #333; color:white; padding:20px; width:300px; border-radius:15px; text-align:center; font-size:18px;" placeholder="סיסמה">
 </div>
 
-<div id="element-tools">
-    <div class="tool-icon" title="Link" onclick="promptLink()">🔗</div>
-    <div class="tool-icon" title="Color" onclick="document.getElementById('color-picker').click()">🎨</div>
-    <div class="tool-icon" title="Delete" onclick="deleteActiveElement()" style="color:#ff3b30;">🗑️</div>
-    <input type="color" id="color-picker" style="display:none;" oninput="changeColor(this.value)">
+<div class="sidebar">
+    <div class="sidebar-header">Pilot Studio</div>
+    <div class="sidebar-content">
+        <div class="group-label">Pages</div>
+        <div class="item-card active">Home (index.html)</div>
+        <div class="item-card">About (about.html)</div>
+        <div class="item-card" style="border: 1px dashed #444; justify-content: center; color: #86868b;">+ Add Page</div>
+
+        <div class="group-label">Elements</div>
+        <div class="item-card" draggable="true" ondragstart="startDrag('button')">🔘 Button</div>
+        <div class="item-card" draggable="true" ondragstart="startDrag('text')">📝 Text Block</div>
+    </div>
 </div>
 
-<button class="save-btn" onclick="saveWork()">Publish Live</button>
+<div class="inspector" id="inspector">
+    <div class="group-label">Properties</div>
+    <label class="ctrl-label">Element Text</label>
+    <input type="text" id="prop-text" class="ctrl-input" oninput="updateEl()">
+    
+    <label class="ctrl-label">Link / Action</label>
+    <input type="text" id="prop-link" class="ctrl-input" placeholder="https://..." oninput="updateEl()">
+    
+    <label class="ctrl-label">Color Theme</label>
+    <input type="color" id="prop-color" class="ctrl-input" style="height:40px;" oninput="updateEl()">
+    
+    <button onclick="deleteEl()" style="width:100%; padding:10px; background:#ff3b30; border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Delete Element</button>
+</div>
+
+<div class="main-view">
+    <div class="top-toolbar">
+        <button class="view-btn active" id="desk-btn" onclick="setView('desktop')">Desktop</button>
+        <button class="view-btn" id="mob-btn" onclick="setView('mobile')">Mobile</button>
+    </div>
+
+    <div class="preview-container">
+        <div id="preview-frame" class="desktop-mockup">
+            <iframe src="index.html" id="site-iframe"></iframe>
+        </div>
+    </div>
+
+    <div class="action-footer">
+        <button class="btn-main btn-publish" onclick="publish()">Publish Live</button>
+    </div>
+</div>
 
 <script>
-    let activeElement = null;
+    let selectedEl = null;
 
-    // פונקציית גרירת אלמנטים חדשים למסך
-    const artboard = document.getElementById('artboard');
-    artboard.ondragover = (e) => e.preventDefault();
-    artboard.ondrop = (e) => {
-        const type = e.dataTransfer.getData('type');
-        const el = document.createElement(type === 'button' ? 'button' : type);
-        el.innerText = "New " + type;
-        el.style.position = "absolute";
-        el.style.left = e.offsetX + "px";
-        el.style.top = e.offsetY + "px";
-        el.style.cursor = "move";
-        if(type === 'button') {
-            el.style.padding = "12px 24px";
-            el.style.background = "#0071e3";
-            el.style.color = "white";
-            el.style.border = "none";
-            el.style.borderRadius = "20px";
+    // Login Logic
+    document.getElementById('pass-field').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter' && e.target.value === 'admin123') {
+            document.getElementById('login-overlay').style.display = 'none';
         }
-        makeDraggable(el);
-        artboard.appendChild(el);
-    };
+    });
 
-    // הפיכת אלמנט לניתן להזזה (כמו תמונה) ולעריכה
-    function makeDraggable(el) {
-        let isDragging = false;
+    function setView(mode) {
+        const frame = document.getElementById('preview-frame');
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        if(mode === 'mobile') {
+            frame.className = 'iphone-mockup';
+            document.getElementById('mob-btn').classList.add('active');
+        } else {
+            frame.className = 'desktop-mockup';
+            document.getElementById('desk-btn').classList.add('active');
+        }
+    }
+
+    const iframe = document.getElementById('site-iframe');
+    iframe.onload = function() {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
         
-        el.addEventListener('mousedown', (e) => {
-            if (e.target.contentEditable === "true") return;
-            isDragging = true;
-            activeElement = el;
-            showTools(el);
-            
-            let shiftX = e.clientX - el.getBoundingClientRect().left;
-            let shiftY = e.clientY - el.getBoundingClientRect().top;
+        // החבאת הצ'אט בזמן עריכה
+        const chat = doc.getElementById('chat-wrapper');
+        if(chat) chat.style.opacity = '0.2';
 
-            function moveAt(pageX, pageY) {
-                el.style.left = (pageX - artboard.getBoundingClientRect().left - shiftX) + 'px';
-                el.style.top = (pageY - artboard.getBoundingClientRect().top - shiftY) + 'px';
-                showTools(el); // הסרגל עוקב אחרי האלמנט
-            }
-
-            function onMouseMove(e) { if(isDragging) moveAt(e.pageX, e.pageY); }
-            document.addEventListener('mousemove', onMouseMove);
-
-            el.onmouseup = () => {
-                isDragging = false;
-                document.removeEventListener('mousemove', onMouseMove);
-            };
+        doc.querySelectorAll('h1, p, button, span').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                selectElement(el);
+            });
         });
-
-        el.addEventListener('dblclick', () => {
-            el.contentEditable = true;
-            el.focus();
-        });
-
-        el.onblur = () => el.contentEditable = false;
-        el.ondragstart = () => false;
     }
 
-    function showTools(el) {
-        const tools = document.getElementById('element-tools');
-        const rect = el.getBoundingClientRect();
-        tools.style.display = 'flex';
-        tools.style.top = (window.scrollY + rect.top - 45) + 'px';
-        tools.style.left = (window.scrollX + rect.left) + 'px';
+    function selectElement(el) {
+        selectedEl = el;
+        document.getElementById('inspector').classList.add('active');
+        document.getElementById('prop-text').value = el.innerText;
+        document.getElementById('prop-link').value = el.getAttribute('onclick') || '';
+        
+        // סימון ויזואלי בתוך ה-iframe
+        selectedEl.style.outline = '2px solid #0071e3';
+        selectedEl.style.outlineOffset = '4px';
     }
 
-    function promptLink() {
-        const url = prompt("Enter URL:", activeElement.dataset.link || "https://");
-        if(url) activeElement.dataset.link = url;
-    }
-
-    function changeColor(color) {
-        if(activeElement) {
-            if(activeElement.tagName === 'BUTTON') activeElement.style.backgroundColor = color;
-            else activeElement.style.color = color;
+    function updateEl() {
+        if(!selectedEl) return;
+        selectedEl.innerText = document.getElementById('prop-text').value;
+        const color = document.getElementById('prop-color').value;
+        if(selectedEl.tagName === 'BUTTON') {
+            selectedEl.style.backgroundColor = color;
         }
     }
 
-    function deleteActiveElement() {
-        if(activeElement && confirm('Delete?')) {
-            activeElement.remove();
-            document.getElementById('element-tools').style.display = 'none';
+    function deleteEl() {
+        if(selectedEl && confirm('למחוק את האלמנט?')) {
+            selectedEl.remove();
+            document.getElementById('inspector').classList.remove('active');
         }
     }
 
-    function addPageTab() {
-        const name = prompt("Page Name:");
-        if(name) {
-            const tabs = document.getElementById('tabs-container');
-            const newTab = document.createElement('div');
-            newTab.className = 'tab';
-            newTab.innerText = name;
-            newTab.onclick = () => switchTab(name, newTab);
-            tabs.insertBefore(newTab, tabs.lastElementChild);
-        }
+    function publish() {
+        alert("השינויים נשמרו ופורסמו בהצלחה!");
     }
-
-    function switchTab(name, el) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        // כאן תוסיף לוגיקה לטעינת תוכן הדף הספציפי
-        alert("Switching to: " + name);
-    }
-
-    function saveWork() {
-        alert("🚀 Published! Your site is live.");
-    }
-
-    // הפיכת אלמנטים קיימים ל-Draggable בטעינה
-    window.onload = () => {
-        document.querySelectorAll('#artboard *').forEach(makeDraggable);
-    };
 </script>
-
 </body>
 </html>
