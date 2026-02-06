@@ -1,29 +1,39 @@
-// משתנה שיחזיק את האלמנט שנבחר כרגע
+// משתנה שישמור את האלמנט שנבחר
 let selectedElement = null;
 
-// 1. האזנה ללחיצות בתוך האתר
-document.getElementById('site-wrapper').addEventListener('click', function(e) {
+// 1. האזנה ללחיצות על אלמנטים באתר
+document.addEventListener('click', function(e) {
+    // אם לחצנו על אלמנט שניתן לעריכה
     if (e.target.classList.contains('editable')) {
         selectElement(e.target);
+    } 
+    // אם לחצנו במקום ריק באתר (מחוץ לאלמנט)
+    else if (e.target.id === 'live-site' || e.target.id === 'site-wrapper') {
+        deselectAll();
     }
 });
 
-// 2. פונקציית הבחירה
 function selectElement(el) {
-    // נקה בחירה קודמת
-    if (selectedElement) selectedElement.classList.remove('selected');
-    
+    deselectAll(); // נקה בחירות קודמות
     selectedElement = el;
-    selectedElement.classList.add('selected');
+    selectedElement.classList.add('selected-node');
 
-    // עדכן את השדות בצד ימין בערכים של האלמנט
+    // מילוי השדות בצד ימין בערכים של האלמנט
     document.getElementById('prop-text').value = el.innerText;
     
     const style = window.getComputedStyle(el);
     document.getElementById('prop-size').value = parseInt(style.fontSize);
+    document.getElementById('prop-radius').value = parseInt(style.borderRadius) || 0;
 }
 
-// 3. עדכון בזמן אמת מהשדות לאתר
+function deselectAll() {
+    if (selectedElement) {
+        selectedElement.classList.remove('selected-node');
+        selectedElement = null;
+    }
+}
+
+// 2. חיבור השדות בצד ימין (INPUTS)
 document.getElementById('prop-text').addEventListener('input', (e) => {
     if (selectedElement) selectedElement.innerText = e.target.value;
 });
@@ -36,28 +46,39 @@ document.getElementById('prop-size').addEventListener('input', (e) => {
     if (selectedElement) selectedElement.style.fontSize = e.target.value + 'px';
 });
 
-// 4. פונקציות עזר
-function addElement(type) {
-    const newEl = document.createElement(type);
-    newEl.className = 'editable';
-    newEl.innerText = 'אלמנט חדש';
-    if(type === 'button') {
-        newEl.style.padding = "10px 20px";
-        newEl.style.background = "#0071e3";
-        newEl.style.color = "white";
-        newEl.style.border = "none";
-        newEl.style.borderRadius = "8px";
+document.getElementById('prop-radius').addEventListener('input', (e) => {
+    if (selectedElement) selectedElement.style.borderRadius = e.target.value + 'px';
+});
+
+// 3. הוספת אלמנטים חדשים
+function addNode(type) {
+    const container = document.getElementById('live-site');
+    const el = document.createElement(type);
+    el.className = 'editable';
+    el.innerText = type === 'button' ? 'כפתור חדש' : 'טקסט חדש';
+    
+    if (type === 'button') {
+        el.style.background = '#0071e3';
+        el.style.color = 'white';
+        el.style.padding = '12px 24px';
+        el.style.border = 'none';
+        el.style.borderRadius = '12px';
+        el.style.display = 'inline-block';
     }
-    document.getElementById('site-wrapper').appendChild(newEl);
+    
+    container.appendChild(el);
+    selectElement(el);
 }
 
-document.getElementById('delete-btn').onclick = () => {
+// 4. מחיקה
+function deleteNode() {
     if (selectedElement) {
         selectedElement.remove();
         selectedElement = null;
     }
-};
+}
 
+// 5. שינוי תצוגה (מובייל/דסקטופ)
 function setDevice(mode) {
     const wrapper = document.getElementById('site-wrapper');
     if (mode === 'mobile') wrapper.classList.add('mobile');
