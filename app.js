@@ -8,35 +8,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const CONTENT_FILE = './site_content.json';
 
-// שליפת תוכן ועיצוב
+// שליפת תוכן
 app.get('/get-content', (req, res) => {
-    try {
-        if (fs.existsSync(CONTENT_FILE)) {
-            res.json(JSON.parse(fs.readFileSync(CONTENT_FILE, 'utf8')));
-        } else {
-            res.json({
-                config: { primaryColor: "#0071e3", borderRadius: "12px", showChat: true },
-                hero: { title: "כותרת פיילוט", subtitle: "משפט השראה כאן" },
-                about: { text: "קצת עלינו..." },
-                services: [
-                    { id: 1, name: "קורס פרימיום", price: "499" }
-                ]
-            });
-        }
-    } catch (e) { res.status(500).send("Error"); }
+    if (fs.existsSync(CONTENT_FILE)) {
+        res.json(JSON.parse(fs.readFileSync(CONTENT_FILE, 'utf8')));
+    } else {
+        res.json({
+            config: { primaryColor: "#0071e3", borderRadius: "12px", darkMode: false },
+            hero: { title: "כותרת האתר שלך", subtitle: "כאן כותבים משפט שיווקי חזק" },
+            buttons: { main: "התחילו עכשיו", contact: "צור קשר" }
+        });
+    }
 });
 
-// שמירה
+// שמירת תוכן (הפאנל ישלח את הסיסמה רק בשמירה)
 app.post('/update-content', (req, res) => {
     const { password, newContent } = req.body;
-    if (password === "pilot2026") { 
+    if (password === "admin123") { // הסיסמה שלך
         fs.writeFileSync(CONTENT_FILE, JSON.stringify(newContent, null, 2));
         res.json({ status: "success" });
-    } else { res.status(403).json({ status: "error" }); }
+    } else {
+        res.status(403).json({ status: "error" });
+    }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Admin Engine Ready on ${PORT}`));
