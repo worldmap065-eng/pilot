@@ -1,66 +1,62 @@
-/* Pilot Engine - Logic Source */
-
+// משתנים לשליטה
 const frame = document.getElementById('site-frame');
-const propsPanel = document.getElementById('props-panel');
-let selectedNode = null;
+const props = document.getElementById('props-panel');
+let currentEl = null;
 
-// 1. ניהול תצוגה (Desktop/Mobile)
-function setMode(mode, btn) {
-    document.querySelectorAll('.sw-btn').forEach(b => b.classList.remove('active'));
+// 1. שינוי תצוגה (מחשב/מובייל)
+function changeView(mode, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     frame.className = (mode === 'mobile') ? 'mobile' : '';
 }
 
-// 2. הזרקת יכולות עריכה לתוך האתר ברגע שהוא נטען
+// 2. הפעלת העריכה כשהאתר נטען
 frame.onload = function() {
     const doc = frame.contentDocument;
     
-    // הזרקת CSS של העורך לתוך האתר כדי לסמן אלמנטים
-    const editorStyle = doc.createElement('style');
-    editorStyle.innerHTML = `
-        .pilot-active { outline: 2px solid #007aff !important; outline-offset: 3px; cursor: pointer; }
-        [contenteditable]:focus { outline: 2px solid #007aff; }
+    // הוספת סגנון סימון לאתר שבתוך ה-iframe
+    const style = doc.createElement('style');
+    style.innerHTML = `
+        .selected { outline: 2px solid #007aff !important; outline-offset: 2px; }
+        *:hover { cursor: pointer; }
     `;
-    doc.head.appendChild(editorStyle);
+    doc.head.appendChild(style);
 
-    // האזנה ללחיצות בתוך ה-iframe
+    // האזנה ללחיצות בתוך האתר
     doc.body.addEventListener('click', (e) => {
-        e.preventDefault();
+        e.preventDefault(); // מונע מהכפתורים באתר לעבור דף
         
-        // הסרת סימון קודם
-        if (selectedNode) selectedNode.classList.remove('pilot-active');
+        if (currentEl) currentEl.classList.remove('selected');
         
-        // בחירת אלמנט חדש
-        selectedNode = e.target;
-        selectedNode.classList.add('pilot-active');
-        selectedNode.contentEditable = "true"; // מאפשר עריכת טקסט ישירה
+        currentEl = e.target;
+        currentEl.classList.add('selected');
+        currentEl.contentEditable = "true"; // מאפשר לערוך טקסט בלחיצה
         
-        // הצגת פאנל ההגדרות
-        propsPanel.style.display = 'block';
+        props.style.display = 'block';
     });
 };
 
 // 3. הוספת אלמנטים חדשים
-function addNew(type) {
+function createNew(tag) {
     const doc = frame.contentDocument;
-    const el = doc.createElement(type);
-    el.innerText = type === 'button' ? 'כפתור חדש' : 'טקסט חדש';
-    el.style.padding = "10px";
+    const el = doc.createElement(tag);
+    el.innerText = tag === 'button' ? 'כפתור חדש' : 'טקסט חדש';
     el.style.margin = "10px";
-    if(type === 'button') {
+    if(tag === 'button') {
+        el.style.padding = "10px 20px";
         el.style.background = "#007aff";
         el.style.color = "white";
-        el.style.borderRadius = "8px";
         el.style.border = "none";
+        el.style.borderRadius = "8px";
     }
     doc.body.appendChild(el);
 }
 
 // 4. מחיקה
-function deleteNode() {
-    if (selectedNode) {
-        selectedNode.remove();
-        selectedNode = null;
-        propsPanel.style.display = 'none';
+function removeNode() {
+    if (currentEl) {
+        currentEl.remove();
+        currentEl = null;
+        props.style.display = 'none';
     }
 }
