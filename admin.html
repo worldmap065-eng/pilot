@@ -2,151 +2,81 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot Studio Pro | 2026</title>
+    <title>Pilot Studio | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #007aff; --bg: #000; --panel: #111; --border: #262626; }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { margin: 0; background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: row-reverse; overflow: hidden; }
-
-        /* סרגל צד ימין - Apple Style */
-        .sidebar { 
-            width: 280px; background: var(--panel); border-left: 1px solid var(--border); 
-            padding: 20px; display: flex; flex-direction: column; z-index: 100;
-        }
-        .section-title { font-size: 11px; color: #666; text-transform: uppercase; margin: 20px 0 10px; font-weight: 600; text-align: right; }
+        :root { --accent: #0071e3; --bg: #000; --panel: #161617; --border: #333; }
+        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
+        body { margin: 0; background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: row; overflow: hidden; }
         
-        .action-btn { 
-            background: #1c1c1e; border: 1px solid #333; color: white; width: 100%; 
-            padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 10px; 
-            text-align: right; transition: 0.2s; font-size: 14px;
-        }
-        .action-btn:hover { background: #2c2c2e; border-color: var(--accent); }
-        .action-btn.primary { background: var(--accent); border: none; font-weight: 600; text-align: center; margin-top: auto; }
-
-        /* אזור עריכה */
-        .editor-area { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
-        .top-nav { height: 60px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); }
+        /* סרגל צד ימין - Elements & Pages */
+        .sidebar-right { width: 280px; background: var(--panel); padding: 20px; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
         
-        .device-toggle { background: #1c1c1e; border-radius: 8px; padding: 4px; display: flex; gap: 4px; }
-        .tgl-btn { background: none; border: none; color: #888; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
-        .tgl-btn.active { background: #3a3a3c; color: white; }
+        /* אזור התצוגה המרכזי */
+        .main-editor { flex: 1; display: flex; flex-direction: column; background: #080808; }
+        .nav { height: 50px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+        
+        .canvas { flex: 1; display: flex; justify-content: center; align-items: center; overflow: auto; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 20px 20px; }
+        #site-wrapper { width: 90%; height: 90%; background: white; color: black; border-radius: 4px; overflow: auto; position: relative; transition: 0.4s; }
+        #site-wrapper.mobile { width: 375px; height: 667px; border-radius: 30px; border: 10px solid #222; }
 
-        .preview { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; }
-        #site-frame { 
-            width: 100%; height: 100%; background: white; border: none; border-radius: 8px; 
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-        }
-        #site-frame.mobile { width: 375px; height: 750px; border: 12px solid #1c1c1e; border-radius: 40px; }
-
-        /* פאנל עריכה צף */
-        #props { 
-            position: absolute; bottom: 30px; right: 300px; 
-            background: #1c1c1e; padding: 15px; border-radius: 12px; 
-            width: 240px; border: 1px solid #333; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        .input { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
+        /* כפתורים ופקדים */
+        .control { margin-bottom: 15px; }
+        .control label { display: block; font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        .input { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 8px; border-radius: 6px; }
+        .btn-action { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; text-align: right; }
+        .btn-action:hover { border-color: var(--accent); }
+        
+        /* אלמנטים ניתנים לעריכה */
+        .editable { cursor: pointer; transition: 0.2s; }
+        .editable:hover { outline: 2px solid var(--accent); }
+        .selected { outline: 2px solid var(--accent) !important; outline-offset: 4px; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div style="font-weight: 700; font-size: 18px; margin-bottom: 20px; letter-spacing: -0.5px;">PILOT STUDIO</div>
-        
-        <div class="section-title">הוספת רכיבים</div>
-        <button class="action-btn" onclick="addNode('h1')">📝 כותרת גדולה</button>
-        <button class="action-btn" onclick="addNode('p')">📄 פסקת טקסט</button>
-        <button class="action-btn" onclick="addNode('button')">🔘 כפתור מעוצב</button>
+    <div class="main-editor">
+        <nav class="nav">
+            <div style="font-weight:600">PILOT STUDIO</div>
+            <div>
+                <button onclick="setDevice('desktop')">מחשב</button>
+                <button onclick="setDevice('mobile')">מובייל</button>
+            </div>
+        </nav>
+        <main class="canvas">
+            <div id="site-wrapper">
+                <h1 class="editable">כותרת האתר שלך</h1>
+                <p class="editable">לחץ כאן כדי להתחיל לערוך...</p>
+            </div>
+        </main>
+    </div>
 
-        <div class="section-title">דפי האתר</div>
-        <button class="action-btn" style="opacity: 0.6;">🏠 דף הבית</button>
+    <aside class="sidebar-right">
+        <div class="control">
+            <label>הוספת אלמנטים</label>
+            <button class="btn-action" onclick="addElement('h1')">➕ הוסף כותרת</button>
+            <button class="btn-action" onclick="addElement('p')">➕ הוסף טקסט</button>
+            <button class="btn-action" onclick="addElement('button')">➕ הוסף כפתור</button>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+
+        <div class="control">
+            <label>עריכת אלמנט</label>
+            <input type="text" id="prop-text" class="input" placeholder="תוכן הטקסט...">
+        </div>
+        <div class="control">
+            <label>צבע טקסט</label>
+            <input type="color" id="prop-color" class="input" style="height:40px">
+        </div>
+        <div class="control">
+            <label>גודל גופן (PX)</label>
+            <input type="number" id="prop-size" class="input">
+        </div>
         
-        <button class="action-btn primary">🚀 פרסם לאוויר</button>
+        <button id="delete-btn" style="background:#ff453a; color:white; border:none; padding:10px; border-radius:6px; margin-top:auto; cursor:pointer;">מחק אלמנט</button>
     </aside>
 
-    <main class="editor-area">
-        <div class="top-nav">
-            <div class="device-toggle">
-                <button class="tgl-btn" onclick="setDevice('mobile', this)">מובייל</button>
-                <button class="tgl-btn active" onclick="setDevice('desktop', this)">מחשב</button>
-            </div>
-        </div>
-        <div class="preview">
-            <iframe id="site-frame" src="index.html"></iframe>
-        </div>
-
-        <div id="props">
-            <label style="font-size: 11px; color: #888; display: block; text-align: right;">תוכן האלמנט:</label>
-            <input type="text" id="edit-input" class="input">
-            <button onclick="deleteElement()" style="width:100%; background: #ff3b3022; border:1px solid #ff3b30; color:#ff3b30; padding:10px; border-radius:8px; margin-top:12px; cursor:pointer; font-weight:600;">מחק אלמנט</button>
-        </div>
-    </main>
-
-    <script>
-        const frame = document.getElementById('site-frame');
-        const props = document.getElementById('props');
-        const input = document.getElementById('edit-input');
-        let selected = null;
-
-        // שינוי תצוגה
-        function setDevice(mode, btn) {
-            document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            frame.className = (mode === 'mobile') ? 'mobile' : '';
-        }
-
-        // הזרקת עריכה לאתר
-        frame.onload = () => {
-            const doc = frame.contentDocument || frame.contentWindow.document;
-            
-            // עיצוב סימון בתוך האתר
-            const style = doc.createElement('style');
-            style.innerHTML = `
-                .active-node { outline: 2px solid #007aff !important; outline-offset: 3px; transition: 0.1s; }
-                *:hover { cursor: crosshair; }
-            `;
-            doc.head.appendChild(style);
-
-            doc.body.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (selected) selected.classList.remove('active-node');
-                
-                selected = e.target;
-                selected.classList.add('active-node');
-                selected.contentEditable = "true";
-                
-                props.style.display = 'block';
-                input.value = selected.innerText;
-            });
-        };
-
-        // עדכון טקסט
-        input.oninput = () => { if (selected) selected.innerText = input.value; };
-
-        // הוספת אלמנטים
-        function addNode(tag) {
-            const doc = frame.contentDocument || frame.contentWindow.document;
-            const el = doc.createElement(tag);
-            el.innerText = tag === 'button' ? 'לחץ כאן' : 'טקסט חדש';
-            
-            if(tag === 'button') {
-                el.style.cssText = "background:#007aff; color:white; padding:12px 24px; border:none; border-radius:10px; cursor:pointer; font-family:sans-serif; margin:10px;";
-            } else {
-                el.style.margin = "15px 0";
-                el.style.display = "block";
-            }
-            
-            doc.body.appendChild(el);
-            el.click(); // בחר אוטומטית את החדש
-        }
-
-        // מחיקה
-        function deleteElement() {
-            if (selected) {
-                selected.remove();
-                selected = null;
-                props.style.display = 'none';
-            }
-        }
-    </script>
+    <script src="editor.js"></script>
 </body>
 </html>
