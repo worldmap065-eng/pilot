@@ -1,262 +1,65 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>Pilot Studio | Live Editor</title>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* --- Studio UI Styles --- */
-        :root { 
-            --accent: #0A84FF; 
-            --bg: #1e1e1e; 
-            --panel: #252526; 
-            --border: #333;
-            --text-main: #fff;
-            --text-dim: #aaa;
-        }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+// משתנה שיחזיק את האלמנט שנבחר כרגע
+let selectedElement = null;
 
-        /* Top Bar */
-        .header {
-            height: 50px; background: #2d2d2d; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
-        }
-        .brand { font-weight: 700; letter-spacing: 0.5px; font-size: 14px; }
-        .actions { display: flex; gap: 10px; }
-        .btn { 
-            background: #3a3a3a; border: none; color: white; padding: 6px 12px; 
-            border-radius: 6px; font-size: 12px; cursor: pointer; transition: 0.2s;
-        }
-        .btn:hover { background: #444; }
-        .btn-primary { background: var(--accent); }
-        .btn-primary:hover { background: #0077ed; }
-
-        /* Workspace Layout */
-        .workspace { flex: 1; display: flex; overflow: hidden; }
-
-        /* Left Sidebar - Elements */
-        .sidebar-left {
-            width: 60px; background: var(--panel); border-left: 1px solid var(--border);
-            display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 15px;
-        }
-        .tool-icon {
-            width: 40px; height: 40px; border-radius: 8px; background: #333; color: #ccc;
-            display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer;
-            transition: 0.2s;
-        }
-        .tool-icon:hover { background: var(--accent); color: white; }
-
-        /* Center - The Live Site */
-        .stage {
-            flex: 1; background: #111; display: flex; justify-content: center; align-items: center;
-            padding: 40px; overflow: hidden; position: relative;
-        }
-        
-        /* The Actual Website Frame */
-        iframe {
-            width: 100%; height: 100%; border: none; background: white;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5); transition: 0.4s ease;
-        }
-        /* Mobile View State */
-        iframe.mobile-view {
-            width: 375px; height: 812px; border-radius: 40px; border: 10px solid #000;
-        }
-
-        /* Right Sidebar - Properties */
-        .sidebar-right {
-            width: 280px; background: var(--panel); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 20px; gap: 20px;
-        }
-        
-        .prop-group { border-bottom: 1px solid #383838; padding-bottom: 15px; }
-        .prop-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; }
-        
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .prop-label { font-size: 12px; color: #ccc; }
-        
-        .input-field {
-            background: #111; border: 1px solid #444; color: white; padding: 6px; 
-            border-radius: 4px; font-size: 12px; width: 140px; outline: none;
-        }
-        .input-field:focus { border-color: var(--accent); }
-        input[type="color"] { padding: 0; width: 40px; height: 30px; cursor: pointer; }
-
-        #selection-status { font-size: 12px; color: var(--accent); text-align: center; margin-bottom: 10px; height: 15px; }
-
-    </style>
-</head>
-<body>
-
-    <header class="header">
-        <div class="brand">PILOT LIVE ENGINE</div>
-        <div class="actions">
-            <button class="btn" onclick="setView('desktop')">🖥️ Desktop</button>
-            <button class="btn" onclick="setView('mobile')">📱 iPhone</button>
-            <button class="btn btn-primary" onclick="publish()">Publish Changes</button>
-        </div>
-    </header>
-
-    <div class="workspace">
-        <main class="stage">
-            <iframe id="site-frame" src="index.html"></iframe>
-        </main>
-
-        <aside class="sidebar-right">
-            <div id="selection-status">לא נבחר אלמנט</div>
-
-            <div class="prop-group">
-                <div class="prop-title">תוכן (Content)</div>
-                <div class="prop-row">
-                    <span class="prop-label">טקסט</span>
-                    <input type="text" id="ctrl-text" class="input-field" placeholder="בחר טקסט...">
-                </div>
-            </div>
-
-            <div class="prop-group">
-                <div class="prop-title">עיצוב (Style)</div>
-                <div class="prop-row">
-                    <span class="prop-label">צבע טקסט</span>
-                    <input type="color" id="ctrl-color" class="input-field">
-                </div>
-                <div class="prop-row">
-                    <span class="prop-label">צבע רקע</span>
-                    <input type="color" id="ctrl-bg" class="input-field">
-                </div>
-                <div class="prop-row">
-                    <span class="prop-label">גודל פונט (px)</span>
-                    <input type="number" id="ctrl-size" class="input-field">
-                </div>
-                <div class="prop-row">
-                    <span class="prop-label">פינות (Radius)</span>
-                    <input type="number" id="ctrl-radius" class="input-field">
-                </div>
-            </div>
-
-            <div class="prop-group">
-                <div class="prop-title">פעולות</div>
-                <button class="btn" style="width:100%; background:#ff3b30;" onclick="deleteEl()">🗑️ מחק אלמנט</button>
-            </div>
-        </aside>
-    </div>
-
-<script>
-    const iframe = document.getElementById('site-frame');
-    let selectedEl = null;
-
-    // 1. כשהאייפריים מסיים להיטען - מזריקים את הקסם פנימה
-    iframe.onload = function() {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        
-        // הזרקת CSS לסימון אלמנטים
-        const style = doc.createElement('style');
-        style.textContent = `
-            * { cursor: default !important; }
-            .pilot-hover { outline: 2px dashed #0A84FF !important; }
-            .pilot-selected { outline: 3px solid #0A84FF !important; z-index: 1000; position: relative; }
-        `;
-        doc.head.appendChild(style);
-
-        // הוספת מאזינים לכל האלמנטים באתר
-        doc.body.addEventListener('mouseover', (e) => {
-            if (e.target !== doc.body) e.target.classList.add('pilot-hover');
-        });
-        doc.body.addEventListener('mouseout', (e) => {
-            e.target.classList.remove('pilot-hover');
-        });
-        
-        doc.body.addEventListener('click', (e) => {
-            e.preventDefault(); // מונע מקישורים לעבוד
-            e.stopPropagation();
-            if(e.target !== doc.body) selectElement(e.target);
-        });
-
-        console.log("Pilot Engine Injected into index.html");
-    };
-
-    // 2. פונקציית הבחירה (מחברת את האלמנט לכפתורים)
-    function selectElement(el) {
-        const doc = iframe.contentDocument;
-        
-        // ניקוי בחירה קודמת
-        const prev = doc.querySelector('.pilot-selected');
-        if(prev) prev.classList.remove('pilot-selected');
-
-        selectedEl = el;
-        selectedEl.classList.add('pilot-selected');
-
-        // עדכון הסטטוס למעלה
-        document.getElementById('selection-status').innerText = "נערך: " + el.tagName;
-
-        // טעינת הנתונים מהאלמנט לשדות בצד ימין
-        document.getElementById('ctrl-text').value = el.innerText;
-        
-        // המרת צבעים וערכים
-        const computed = window.getComputedStyle(el); // הערה: זה לוקח סטייל מהחלון הראשי, לדיוק צריך iframe window אבל זה מספיק להתחלה
-        const elStyle = el.style;
-        
-        document.getElementById('ctrl-size').value = parseInt(iframe.contentWindow.getComputedStyle(el).fontSize);
-        document.getElementById('ctrl-radius').value = parseInt(iframe.contentWindow.getComputedStyle(el).borderRadius) || 0;
-        
-        // המרת צבע RGB ל-HEX עבור שדה ה-Input Color
-        document.getElementById('ctrl-color').value = rgbToHex(iframe.contentWindow.getComputedStyle(el).color);
-        document.getElementById('ctrl-bg').value = rgbToHex(iframe.contentWindow.getComputedStyle(el).backgroundColor);
+// 1. האזנה ללחיצות בתוך האתר
+document.getElementById('site-wrapper').addEventListener('click', function(e) {
+    if (e.target.classList.contains('editable')) {
+        selectElement(e.target);
     }
+});
 
-    // 3. פונקציות העדכון בזמן אמת (Live Update)
+// 2. פונקציית הבחירה
+function selectElement(el) {
+    // נקה בחירה קודמת
+    if (selectedElement) selectedElement.classList.remove('selected');
     
-    // טקסט
-    document.getElementById('ctrl-text').addEventListener('input', (e) => {
-        if(selectedEl) selectedEl.innerText = e.target.value;
-    });
+    selectedElement = el;
+    selectedElement.classList.add('selected');
 
-    // גודל פונט
-    document.getElementById('ctrl-size').addEventListener('input', (e) => {
-        if(selectedEl) selectedEl.style.fontSize = e.target.value + 'px';
-    });
+    // עדכן את השדות בצד ימין בערכים של האלמנט
+    document.getElementById('prop-text').value = el.innerText;
+    
+    const style = window.getComputedStyle(el);
+    document.getElementById('prop-size').value = parseInt(style.fontSize);
+}
 
-    // צבע טקסט
-    document.getElementById('ctrl-color').addEventListener('input', (e) => {
-        if(selectedEl) selectedEl.style.color = e.target.value;
-    });
+// 3. עדכון בזמן אמת מהשדות לאתר
+document.getElementById('prop-text').addEventListener('input', (e) => {
+    if (selectedElement) selectedElement.innerText = e.target.value;
+});
 
-    // צבע רקע
-    document.getElementById('ctrl-bg').addEventListener('input', (e) => {
-        if(selectedEl) selectedEl.style.backgroundColor = e.target.value;
-    });
+document.getElementById('prop-color').addEventListener('input', (e) => {
+    if (selectedElement) selectedElement.style.color = e.target.value;
+});
 
-    // רדיוס
-    document.getElementById('ctrl-radius').addEventListener('input', (e) => {
-        if(selectedEl) selectedEl.style.borderRadius = e.target.value + 'px';
-    });
+document.getElementById('prop-size').addEventListener('input', (e) => {
+    if (selectedElement) selectedElement.style.fontSize = e.target.value + 'px';
+});
 
-    // מחיקה
-    function deleteEl() {
-        if(selectedEl && confirm("בטוח למחוק?")) {
-            selectedEl.remove();
-            selectedEl = null;
-            document.getElementById('ctrl-text').value = "";
-        }
+// 4. פונקציות עזר
+function addElement(type) {
+    const newEl = document.createElement(type);
+    newEl.className = 'editable';
+    newEl.innerText = 'אלמנט חדש';
+    if(type === 'button') {
+        newEl.style.padding = "10px 20px";
+        newEl.style.background = "#0071e3";
+        newEl.style.color = "white";
+        newEl.style.border = "none";
+        newEl.style.borderRadius = "8px";
     }
+    document.getElementById('site-wrapper').appendChild(newEl);
+}
 
-    // תצוגה
-    function setView(mode) {
-        if(mode === 'mobile') iframe.classList.add('mobile-view');
-        else iframe.classList.remove('mobile-view');
+document.getElementById('delete-btn').onclick = () => {
+    if (selectedElement) {
+        selectedElement.remove();
+        selectedElement = null;
     }
+};
 
-    function publish() {
-        alert("השינויים נשמרו! (כדי לשמור באמת צריך צד שרת, כרגע זה מקומי בדפדפן)");
-    }
-
-    // פונקציית עזר להמרת צבעים
-    function rgbToHex(rgb) {
-        if(!rgb || rgb === 'rgba(0, 0, 0, 0)') return '#ffffff';
-        const rgbValues = rgb.match(/\d+/g);
-        if(!rgbValues) return '#000000';
-        return "#" + ((1 << 24) + (parseInt(rgbValues[0]) << 16) + (parseInt(rgbValues[1]) << 8) + parseInt(rgbValues[2])).toString(16).slice(1);
-    }
-</script>
-
-</body>
-</html>
+function setDevice(mode) {
+    const wrapper = document.getElementById('site-wrapper');
+    if (mode === 'mobile') wrapper.classList.add('mobile');
+    else wrapper.classList.remove('mobile');
+}
