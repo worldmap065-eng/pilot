@@ -1,114 +1,66 @@
-/* PILOT STUDIO ENGINE v3.0 - STABLE 
-   קוד יציב לניהול עריכה בזמן אמת
-*/
+/* Pilot Engine - Logic Source */
 
-// 1. הגדרת משתנים גלובליים
-let selectedElement = null;
+const frame = document.getElementById('site-frame');
+const propsPanel = document.getElementById('props-panel');
+let selectedNode = null;
 
-// 2. פונקציית בחירה - מופעלת בלחיצה על אלמנט באתר
-function selectItem(el) {
-    // הסרת סימון מאלמנט קודם
-    if (selectedElement) {
-        selectedElement.style.outline = "none";
-        selectedElement.classList.remove('selected-node');
-    }
+// 1. ניהול תצוגה (Desktop/Mobile)
+function setMode(mode, btn) {
+    document.querySelectorAll('.sw-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    frame.className = (mode === 'mobile') ? 'mobile' : '';
+}
 
-    // הגדרת האלמנט החדש כנבחר
-    selectedElement = el;
-    selectedElement.style.outline = "2px solid #0071e3"; // סימון כחול של אפל
-    selectedElement.style.outlineOffset = "4px";
-
-    // --- עדכון הפאנל הימני בנתונים של האלמנט שנבחר ---
-    const textInput = document.getElementById('prop-text');
-    const colorInput = document.getElementById('prop-color');
-    const sizeInput = document.getElementById('prop-size');
-    const radiusInput = document.getElementById('prop-radius');
-
-    if (textInput) textInput.value = el.innerText;
+// 2. הזרקת יכולות עריכה לתוך האתר ברגע שהוא נטען
+frame.onload = function() {
+    const doc = frame.contentDocument;
     
-    // שליפת הסטייל הנוכחי מהדפדפן
-    const computedStyle = window.getComputedStyle(el);
-    if (sizeInput) sizeInput.value = parseInt(computedStyle.fontSize);
-    if (radiusInput) radiusInput.value = parseInt(computedStyle.borderRadius) || 0;
-}
+    // הזרקת CSS של העורך לתוך האתר כדי לסמן אלמנטים
+    const editorStyle = doc.createElement('style');
+    editorStyle.innerHTML = `
+        .pilot-active { outline: 2px solid #007aff !important; outline-offset: 3px; cursor: pointer; }
+        [contenteditable]:focus { outline: 2px solid #007aff; }
+    `;
+    doc.head.appendChild(editorStyle);
 
-// 3. האזנה ללחיצות על אלמנטים ניתנים לעריכה
-// אנחנו משתמשים ב-Event Delegation כדי שזה יעבוד גם על אלמנטים חדשים שנוסיף
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('editable')) {
-        selectItem(e.target);
-    } else if (!e.target.closest('.sidebar') && !e.target.closest('.nav')) {
-        // אם לחצו מחוץ לאלמנט ומחוץ לסרגלים - בטל בחירה
-        if (selectedElement) {
-            selectedElement.style.outline = "none";
-            selectedElement.classList.remove('selected-node');
-            selectedElement = null;
-        }
+    // האזנה ללחיצות בתוך ה-iframe
+    doc.body.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // הסרת סימון קודם
+        if (selectedNode) selectedNode.classList.remove('pilot-active');
+        
+        // בחירת אלמנט חדש
+        selectedNode = e.target;
+        selectedNode.classList.add('pilot-active');
+        selectedNode.contentEditable = "true"; // מאפשר עריכת טקסט ישירה
+        
+        // הצגת פאנל ההגדרות
+        propsPanel.style.display = 'block';
+    });
+};
+
+// 3. הוספת אלמנטים חדשים
+function addNew(type) {
+    const doc = frame.contentDocument;
+    const el = doc.createElement(type);
+    el.innerText = type === 'button' ? 'כפתור חדש' : 'טקסט חדש';
+    el.style.padding = "10px";
+    el.style.margin = "10px";
+    if(type === 'button') {
+        el.style.background = "#007aff";
+        el.style.color = "white";
+        el.style.borderRadius = "8px";
+        el.style.border = "none";
     }
-});
-
-// 4. חיבור השדות בצד ימין לפעולות (שינוי בזמן אמת)
-
-// שינוי טקסט
-const textInp = document.getElementById('prop-text');
-if (textInp) {
-    textInp.addEventListener('input', (e) => {
-        if (selectedElement) selectedElement.innerText = e.target.value;
-    });
+    doc.body.appendChild(el);
 }
 
-// שינוי צבע
-const colorInp = document.getElementById('prop-color');
-if (colorInp) {
-    colorInp.addEventListener('input', (e) => {
-        if (selectedElement) selectedElement.style.color = e.target.value;
-    });
-}
-
-// שינוי גודל גופן
-const sizeInp = document.getElementById('prop-size');
-if (sizeInp) {
-    sizeInp.addEventListener('input', (e) => {
-        if (selectedElement) selectedElement.style.fontSize = e.target.value + 'px';
-    });
-}
-
-// שינוי רדיוס פינות
-const radiusInp = document.getElementById('prop-radius');
-if (radiusInp) {
-    radiusInp.addEventListener('input', (e) => {
-        if (selectedElement) selectedElement.style.borderRadius = e.target.value + 'px';
-    });
-}
-
-// 5. הוספת אלמנטים חדשים מהסרגל השמאלי
-function addNode(type) {
-    const liveArea = document.getElementById('live-site') || document.getElementById('site-wrapper');
-    const newEl = document.createElement(type);
-    newEl.className = 'editable';
-    newEl.innerText = type === 'button' ? 'כפתור' : 'טקסט חדש';
-    
-    if (type === 'button') {
-        newEl.style.background = '#0071e3';
-        newEl.style.color = 'white';
-        newEl.style.padding = '12px 24px';
-        newEl.style.borderRadius = '12px';
-        newEl.style.border = 'none';
-        newEl.style.display = 'inline-block';
-        newEl.style.marginTop = '10px';
-    } else if (type === 'h1') {
-        newEl.style.fontSize = '32px';
-        newEl.style.fontWeight = '600';
-    }
-
-    liveArea.appendChild(newEl);
-    selectItem(newEl); // בחר אוטומטית את האלמנט החדש
-}
-
-// 6. מחיקה
+// 4. מחיקה
 function deleteNode() {
-    if (selectedElement && confirm('למחוק את האלמנט?')) {
-        selectedElement.remove();
-        selectedElement = null;
+    if (selectedNode) {
+        selectedNode.remove();
+        selectedNode = null;
+        propsPanel.style.display = 'none';
     }
 }
