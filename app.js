@@ -53,5 +53,5 @@ app.post('/send-pilot', async (req, res) => {
     }
 });
 
-const PORT = 4000;
-app.listen(PORT, () => console.log(`🚀 השרת עבר ל-Groq (Llama 3) ורץ בפורט ${PORT}`));
+const PORT = process.env.port || 10000;
+app.listen(PORT, () => console.log(`🚀 השרת רץ${PORT}`));
