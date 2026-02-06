@@ -2,79 +2,66 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Pilot Studio | Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>פיילוט סטודיו | פאנל ניהול</title>
     <style>
-        /* עיצוב הממשק - סגנון Apple Dark */
         :root { --accent: #007aff; --bg: #000; --panel: #111; --border: #222; }
-        * { box-sizing: border-box; font-family: 'SF Pro Display', sans-serif; }
+        * { box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; }
         body { margin: 0; background: var(--bg); color: white; height: 100vh; display: flex; overflow: hidden; }
 
-        /* סרגל צד - ניהול דפים ואלמנטים */
-        .sidebar-right { width: 280px; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px; }
-        .section-title { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 15px; }
+        /* סרגל צד ימין */
+        .sidebar { width: 280px; background: var(--panel); border-left: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; }
+        .section-title { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
         
-        .page-item { background: transparent; border: none; color: #fff; width: 100%; text-align: right; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; margin-bottom: 5px; }
-        .page-item.active { background: var(--accent); }
-        .add-btn { border: 1px dashed #333; color: #666; background: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 13px; width: 100%; }
+        .btn-page { background: transparent; border: none; color: #fff; width: 100%; text-align: right; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 5px; }
+        .btn-page.active { background: var(--accent); }
 
         /* אזור עבודה */
-        .editor-main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .top-bar { height: 60px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border); }
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .top-bar { height: 60px; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid var(--border); }
         
-        .switcher { background: #222; border-radius: 10px; padding: 4px; display: flex; }
-        .sw-btn { background: none; border: none; color: #888; padding: 7px 18px; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 500; }
-        .sw-btn.active { background: #444; color: white; }
+        .view-toggle { background: #222; border-radius: 10px; padding: 4px; display: flex; }
+        .tab { background: none; border: none; color: #888; padding: 7px 15px; border-radius: 7px; cursor: pointer; font-size: 12px; }
+        .tab.active { background: #444; color: white; }
 
-        /* קנבס האתר */
-        .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; padding: 30px; background: #080808; overflow: hidden; }
-        #site-frame { width: 100%; height: 100%; background: white; border: none; border-radius: 12px; box-shadow: 0 40px 100px rgba(0,0,0,0.6); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        #site-frame.mobile { width: 375px; height: 812px; border-radius: 40px; border: 12px solid #222; }
+        /* מסך האתר */
+        .canvas { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; background: #080808; }
+        #site-frame { width: 100%; height: 100%; background: white; border: none; border-radius: 12px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); transition: 0.4s; }
+        #site-frame.mobile { width: 375px; height: 750px; border: 12px solid #222; border-radius: 40px; }
 
-        /* חלון הגדרות צף */
-        #props-panel { position: absolute; bottom: 30px; left: 30px; background: #1c1c1e; padding: 20px; border-radius: 16px; width: 260px; border: 1px solid #333; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .prop-label { font-size: 11px; color: #8e8e93; display: block; margin-bottom: 8px; }
-        .prop-input { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; }
-        .del-btn { width: 100%; background: #ff3b30; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; }
-
-        .pub-btn { position: absolute; bottom: 30px; right: 310px; background: white; color: black; border: none; padding: 12px 25px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .pub-btn:hover { transform: scale(1.05); }
+        /* תפריט הגדרות צף */
+        #props-panel { position: absolute; bottom: 20px; left: 20px; background: #1c1c1e; padding: 20px; border-radius: 15px; width: 240px; border: 1px solid #333; display: none; }
+        .input-label { font-size: 11px; color: #8e8e93; display: block; margin-bottom: 8px; }
+        .input-field { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+        .delete-btn { width: 100%; background: #ff3b30; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <div class="editor-main">
+    <div class="main">
         <div class="top-bar">
-            <div class="switcher">
-                <button class="sw-btn" onclick="setMode('mobile', this)">Mobile</button>
-                <button class="sw-btn active" onclick="setMode('desktop', this)">Desktop</button>
+            <div class="view-toggle">
+                <button class="tab" onclick="changeView('mobile', this)">מובייל</button>
+                <button class="tab active" onclick="changeView('desktop', this)">מחשב</button>
             </div>
         </div>
-
-        <div class="canvas-area">
+        <div class="canvas">
             <iframe id="site-frame" src="index.html"></iframe>
         </div>
-
         <div id="props-panel">
-            <label class="prop-label">Link URL / Action</label>
-            <input type="text" class="prop-input" id="el-action" placeholder="()toggleChat">
-            <button class="del-btn" onclick="deleteNode()">Delete Element</button>
+            <label class="input-label">קישור או פעולה</label>
+            <input type="text" class="input-field" id="node-link" placeholder="הכנס לינק...">
+            <button class="delete-btn" onclick="removeNode()">מחק אלמנט</button>
         </div>
-        
-        <button class="pub-btn">Publish Live</button>
     </div>
 
-    <aside class="sidebar-right">
-        <div class="section-title">Pages</div>
-        <button class="page-item active">Home (index.html)</button>
-        <button class="page-item">About (about.html)</button>
-        <button class="add-btn">Add New Page +</button>
-
-        <div class="section-title">Elements</div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button class="add-btn" onclick="addNew('h1')">Text 📝</button>
-            <button class="add-btn" onclick="addNew('button')">Button 🔘</button>
-        </div>
+    <aside class="sidebar">
+        <div class="section-title">דפים</div>
+        <button class="btn-page active">דף הבית</button>
+        <button class="btn-page">אודות</button>
+        
+        <div class="section-title" style="margin-top: 30px;">הוספת רכיבים</div>
+        <button class="btn-page" style="border: 1px dashed #333;" onclick="createNew('h1')">הוסף כותרת +</button>
+        <button class="btn-page" style="border: 1px dashed #333;" onclick="createNew('button')">הוסף כפתור +</button>
     </aside>
 
     <script src="editor.js"></script>
